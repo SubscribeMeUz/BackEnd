@@ -1,0 +1,123 @@
+{
+  "id": "gym",
+  "title": "Lemon Gym",
+  "logo": "https://example.com/lemon_gym_logo.png",
+  "tabs": [
+    { "label": "Man", "value": "man" },
+    { "label": "Woman", "value": "woman" }
+  ],
+  "plansByTab": {
+    "man": [
+      {
+        "title": "Daytime (06:00 - 11:00)",
+        "options": [
+          {
+            "id": 1,
+            "plan_name": "Trial",
+            "label": "Free",
+            "title":"7 days",
+            "subtitle": "Free trial subscription"
+          },
+          {
+            "id": 2,
+            "plan_name": "Start",
+            "title":"1 month",
+            "subtitle": "690000 sum"
+          }
+        ]
+      },
+      {
+        "title": "Afternoon (12:00 - 17:00)",
+        "options": [
+          {
+            "id": 3,
+            "plan_name": "Trial",
+            "label": "Free",
+            "title":"7 days",
+            "subtitle": "Free trial subscription"
+          },
+          {
+            "id": 4,
+            "plan_name": "Start",
+            "title":"1 month",
+            "subtitle": "790000 sum"
+          }
+        ]
+      },
+      {
+        "title": "Evening (18:00 - 00:00)",
+        "options": [
+          {
+            "id": 5,
+            "plan_name": "Trial",
+            "label": "Free",
+            "title":"7 days",
+            "subtitle": "Free trial subscription"
+          },
+          {
+            "id": 6,
+            "plan_name": "Start",
+            "title":"1 month",
+            "subtitle": "890000 sum"
+          }
+        ]
+      }
+    ],
+    "woman": [
+      {
+        "title": "Daytime (06:00 - 11:00)",
+        "options": [
+          {
+            "id": 7,
+            "plan_name": "Trial",
+            "label": "Free",
+            "title":"7 days",
+            "subtitle": "Free trial subscription"
+          },
+          {
+            "id": 8,
+            "plan_name": "Start",
+            "title":"1 month",
+            "subtitle": "690000 sum"
+          }
+        ]
+      },
+      {
+        "title": "Afternoon (12:00 - 17:00)",
+        "options": [
+          {
+            "id": 9,
+            "plan_name": "Trial",
+            "label": "Free",
+            "title":"7 days",
+            "subtitle": "Free trial subscription"
+          },
+          {
+            "id": 10,
+            "plan_name": "Start",
+            "title":"1 month",
+            "subtitle": "790000 sum"
+          }
+        ]
+      },
+      {
+        "title": "Evening (18:00 - 00:00)",
+        "options": [
+          {
+            "id": 11,
+            "plan_name": "Trial",
+            "label": "Free",
+            "title":"7 days",
+            "subtitle": "Free trial subscription"
+          },
+          {
+            "id": 12,
+            "plan_name": "Start",
+            "title":"1 month",
+            "subtitle": "890000 sum"
+          }
+        ]
+      }
+    ]
+  }
+}
