@@ -114,6 +114,17 @@ def get_api(aboniment_id: int, user=Depends(auth_handler.auth_wrapper)):
                             "error_message": f"{err}"})
 
 
+@router.get('/qr-code-by-provider/{provider_id}', status_code=200)
+def get_api(provider_id: int, user=Depends(auth_handler.auth_wrapper)):
+    try:
+        with SessionManager() as db:
+            resp = sv.generate_qr_code(db=db, provider_id=provider_id)
+        return FileResponse(resp)
+    except Exception as err:
+        raise HTTPException(400, {"title": "error",
+                            "error_message": f"{err}"})
+
+
 # @router.get(, status_code=200)
 # def get_(, user: Depends(auth_handler.auth_wrapper)):
 #     try:

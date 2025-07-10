@@ -235,15 +235,27 @@ def delete_aboniment(db: Session, aboniment_id: int):
                                   "error_message": f"{err}"})
 
 
-def generate_qr_code(db: Session, aboniment_id: int) -> str:
-    content = {
-        "aboniment_id": aboniment_id
-    }
-    qr = pyqrcode.create(str(content))
-
+def generate_qr_code(db: Session, aboniment_id: int = None, provider_id: int = None) -> str:
     save_dir = Path("app/static/qr_codes")
 
-    file_path = save_dir / f"aboniment_{aboniment_id}.png"
+    if aboniment_id:
+        aboniment: Aboniments = db.query(Aboniments).filter_by(id=aboniment_id).first()
+        if not aboniment:
+            raise ValueError("Aboniment not found!")
+        content = {
+            "aboniment_id": aboniment_id,
+            "provider_id": aboniment.provider_id
+        }
+        file_path = save_dir / f"aboniment_{aboniment_id}.png"
+    elif provider_id:
+        provider = db.query(Providers).filter_by(id=provider_id).first()
+        if not provider:
+            raise ValueError("Provider not found!")
+        content = {
+            "provider_id": provider_id
+        }
+        file_path = save_dir / f"provider_{provider_id}.png"
+    qr = pyqrcode.create(str(content))
     qr.png(str(file_path), scale=6)
 
     return str(file_path)

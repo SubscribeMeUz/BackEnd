@@ -80,8 +80,8 @@ class ProviderTreeOut(BaseModel):
 
 
 class VisitationLogAddRequest(BaseModel):
-    user_id: int
     provider_id: int
+    aboniment_id: int
 
     class Config:
         from_attribute = True

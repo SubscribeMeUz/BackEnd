@@ -25,17 +25,28 @@ def add_logo_url(log: VisitationLogs, request: Request):
     return log
 
 
-def check_purchase_is_valid(db: Session, user: Users, provider_id: int):
-    purchase = (
-        db
-        .query(Purchases)
-        .join(Purchases.aboniment)
-        .filter(Purchases.status == web_purchases_sc.PurchasesStatuses.NEW)
-        .filter(Aboniments.provider_id == provider_id)
-        .filter(Purchases.user_id == user.id)
-        .order_by(Purchases.recorded_date.desc())
-        .first()
-    )
+def check_purchase_is_valid(db: Session, user: Users, provider_id: int, aboniment_id: int):
+    if aboniment_id:
+        purchase = (
+            db
+            .query(Purchases)
+            .filter(Purchases.status == web_purchases_sc.PurchasesStatuses.NEW)
+            .filter(Purchases.aboniment_id == aboniment_id)
+            .filter(Purchases.user_id == user.id)
+            .order_by(Purchases.recorded_date.desc())
+            .first()
+        )
+    else:
+        purchase = (
+            db
+            .query(Purchases)
+            .join(Purchases.aboniment)
+            .filter(Purchases.status == web_purchases_sc.PurchasesStatuses.NEW)
+            .filter(Aboniments.provider_id == provider_id)
+            .filter(Purchases.user_id == user.id)
+            .order_by(Purchases.recorded_date.desc())
+            .first()
+        )
     if not purchase:
         raise ValueError("Sizda ushbu provayderda aktiv aboniment mavjud emas!")
 
@@ -134,15 +145,14 @@ def get_user_visitations(db: Session, user: Users,
     return providers
 
 
-def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, http_request: Request):
+def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, http_request: Request, user: Users):
     provider = db.query(Providers).filter(Providers.id == request.provider_id).first()
     if not provider:
         raise ValueError("Provider not found")
-    user = db.query(Users).filter(Users.id == request.user_id).first()
-    if not user:
-        raise ValueError("User not found")
-    
-    purchase: Purchases = check_purchase_is_valid(db=db, user=user, provider_id=request.provider_id)
+
+    purchase: Purchases = check_purchase_is_valid(db=db, user=user,
+                                                  provider_id=request.provider_id,
+                                                  aboniment_id=request.aboniment_id)
 
     new_log = VisitationLogs(
         user_id = user.id,
