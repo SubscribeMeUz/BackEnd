@@ -1,14 +1,8 @@
-import os
-import uuid
 import math
-import shutil
 import logging
 import pyqrcode
 from pathlib import Path
-from typing import List
-from fastapi import HTTPException, Request
-from urllib.parse import urljoin
-from sqlalchemy.orm import Session, joinedload, join
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.sql import or_
 from app.models.users.users import Users
 from app.models.providers.providers import Providers
@@ -17,27 +11,16 @@ from app.models.purchases.purchases import Purchases
 from app.models.workouttimes.workout_times import WorkOutTimes
 from app.models.packages.packages import AbonimentPackage
 from app.models.provider_tabs.provider_tabs import ProviderTabs
-from app.web.services.providers import providers as provider_service
 from app.web.schemas.aboniments import aboniments as sc
 
 
 logger = logging.getLogger(__name__)
 
 
-def add_logo_url(resp: List[Aboniments], request: Request):
-    if isinstance(resp, Aboniments):
-        resp.provider.logo_url = urljoin(request.base_url.__str__(), resp.provider.logo_path)
-    else:
-        for i in resp:
-            i.provider.logo_url = urljoin(request.base_url.__str__(), i.provider.logo_path)
-    return resp
-
-
 def get_aboniments(db: Session,
                    page: int,
                    page_size: int,
-                   query: str,
-                   request: Request) -> sc.AbonimentsResponse:
+                   query: str) -> sc.AbonimentsResponse:
     resp = (
         db
         .query(AbonimentPackage)
@@ -89,13 +72,11 @@ def get_aboniments(db: Session,
         "total_pages": total_pages,
         "page": page,
         "limit": page_size,
-        "data": add_logo_url(resp, request)
+        "data": resp
     }
 
 
-def get_provider_aboniments(db: Session,
-                            provider_id: int,
-                            request: Request) -> sc.AbonimentsResponse:
+def get_provider_aboniments(db: Session, provider_id: int) -> sc.AbonimentsResponse:
     resp = (
         db
         .query(Aboniments)
@@ -120,7 +101,7 @@ def get_provider_aboniments(db: Session,
         .order_by(Aboniments.id)
         .all()
     )
-    return add_logo_url(resp=resp, request=request)
+    return resp
 
 
 def get_aboniments_related_by_user(db: Session, user: Users, page: int, page_size: int):
@@ -153,7 +134,7 @@ def get_aboniments_related_by_user(db: Session, user: Users, page: int, page_siz
     }
 
 
-def get_aboniment(db: Session, aboniment_id: int, request: Request):
+def get_aboniment(db: Session, aboniment_id: int):
     resp = (
         db
         .query(Aboniments)
@@ -176,7 +157,7 @@ def get_aboniment(db: Session, aboniment_id: int, request: Request):
     )
     if not resp:
         raise ValueError("Not found")
-    return add_logo_url(resp, request=request)
+    return resp
 
 
 def add_aboniment(db: Session, request: sc.AbonimentPost) -> dict:
@@ -196,12 +177,11 @@ def add_aboniment(db: Session, request: sc.AbonimentPost) -> dict:
         return {"result": "ok"}
     except Exception as err:
         db.rollback()
-        raise HTTPException(400, {"title": "error",
-                                  "error_message": f"{err}"})
+        raise err
 
 
-def change_aboniment(db: Session, aboniment_id: int, request: sc.ChangeAboniment, base_request: Request) -> dict:
-    aboniment = get_aboniment(db=db, aboniment_id=aboniment_id, request=base_request)
+def change_aboniment(db: Session, aboniment_id: int, request: sc.ChangeAboniment) -> dict:
+    aboniment = get_aboniment(aboniment_id=aboniment_id)
     for field, value in request.model_dump().items():
         if value is not None:
             setattr(aboniment, field, value)
@@ -213,11 +193,10 @@ def change_aboniment(db: Session, aboniment_id: int, request: sc.ChangeAboniment
         db.refresh(aboniment)
         return {"result": "ok",
                 "aboniment": sc.AbonimentOut.model_validate(
-                    get_aboniment(db=db, aboniment_id=aboniment_id, request=base_request))}
+                    get_aboniment(aboniment_id=aboniment_id))}
     except Exception as err:
         db.rollback()
-        raise HTTPException(400, {"title": "error",
-                                  "error_message": f"{err}"})
+        raise err
 
 
 def delete_aboniment(db: Session, aboniment_id: int):
@@ -231,8 +210,7 @@ def delete_aboniment(db: Session, aboniment_id: int):
         return {"result": "ok"}
     except Exception as err:
         db.rollback()
-        raise HTTPException(400, {"title": "error",
-                                  "error_message": f"{err}"})
+        raise err
 
 
 def generate_qr_code(db: Session, aboniment_id: int = None, provider_id: int = None) -> str:

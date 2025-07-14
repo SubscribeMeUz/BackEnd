@@ -53,7 +53,7 @@ def add_package(db: Session, request: sc.AbonimentPackageAddRequest):
 
 
 def edit_package(db: Session, package_id: int, request: sc.AbonimentPackageEditRequest):
-    package = get_package(db=db, package_id=package_id)
+    package = get_package(package_id=package_id)
 
     for field, value in request.model_dump().items():
         if value is not None:
@@ -69,8 +69,8 @@ def edit_package(db: Session, package_id: int, request: sc.AbonimentPackageEditR
         raise err
 
 
-def delete_package(db: Session, package_id: int) -> sc.AddedOrDeletedObjectRescponse:
-    package = get_package(db=db, package_id=package_id)
+def delete_package(db: Session, package_id: int) -> sc.AddedOrDeletedObjectResponse:
+    package = get_package(package_id=package_id)
     db.delete(package)
     try:
         db.commit()

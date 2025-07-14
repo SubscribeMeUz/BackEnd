@@ -1,21 +1,41 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator, field_serializer
 from typing import Any, Optional, List
-from app.models.providers.providers import Providers
 
 
 class ProvidersLessResponse(BaseModel):
     id: int
-    logo: str
-    name: str
-    title: str = Field(..., alias='name')
+    logo: str = ''
+    logo_path: str = ''
+    name: str = ''
+    title: str = ''
+
+    @field_serializer('logo')
+    def fpv_logo_url(self, v):
+        return self.logo_path
+
+    @field_serializer('title')
+    def pv_ttl(self, v):
+        return self.name
 
     class Config:
         from_attributes = True
-        validate_by_name = True
+        validate_by_name = False
+
+
+ListProvidersLessResponse = List[ProvidersLessResponse]
 
 
 class PhotosOut(BaseModel):
-    photo_url: str
+    path: str = ''
+    photo_url: str = ''
+
+    @field_serializer('photo_url')
+    def photos_url_(self, v):
+        return self.path
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 
 
 class ProviderDetailResponse(ProvidersLessResponse):

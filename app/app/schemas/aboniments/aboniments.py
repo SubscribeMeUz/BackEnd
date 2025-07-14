@@ -1,4 +1,4 @@
-from pydantic import BaseModel, model_validator, Field
+from pydantic import BaseModel, model_validator, field_serializer
 from datetime import datetime, date, timedelta
 from typing import List, Optional, Dict
 from app.models.providers.providers import Providers
@@ -22,7 +22,12 @@ class AbonimentResponse(BaseModel):
 class MyAbonimentProviderOut(BaseModel):
     id: int
     name: str
-    logo_url: str
+    logo_path: str = ''
+    logo: str = ''
+
+    @field_serializer('logo')
+    def lg(self, x):
+        return self.logo_path
 
     class Config:
         from_attributes = True
@@ -59,6 +64,9 @@ class MyPurchasedAbonimentResponse(BaseModel):
         from_attributes = True
 
 
+ListPurchasedAboniments = List[MyPurchasedAbonimentResponse]
+
+
 class ProviderTabsLess(BaseModel):
     label: str
     value: str
@@ -90,9 +98,18 @@ class WorkoutTimeWithAboniments(BaseModel):
 
 class ProvidersLessResponse(BaseModel):
     id: int
-    logo: str
+    logo_path: str = ''
+    logo: str = ''
     name: str
-    title: str = Field(..., alias='name')
+    title: str = ''
+
+    @field_serializer('logo')
+    def fv(self, v):
+        return self.logo_path
+
+    @field_serializer('title')
+    def ttl(self, v):
+        return self.name
 
     class Config:
         from_attributes = True
@@ -102,9 +119,14 @@ class ProvidersLessResponse(BaseModel):
 class ProviderAbonimentsResponse(BaseModel):
     id: int
     title: str
-    logo: str
+    logo_path: str
+    logo: str = ''
     tabs: List[ProviderTabsLess]
     plansByTab: Dict[str, List[WorkoutTimeWithAboniments]]
+
+    @field_serializer('logo')
+    def fpv_logo(self, f):
+        return self.logo_path
 
     @model_validator(mode="before")
     def f(cls, provider: Providers):
@@ -139,4 +161,3 @@ class ProviderAbonimentsResponse(BaseModel):
     class Config:
         from_attributes = True
         validate_by_name = True
-

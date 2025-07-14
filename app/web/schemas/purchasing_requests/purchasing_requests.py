@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from app.app.schemas.purchasing_requests.purchasing_requests import PurchasingRequestsStatuses
 from app.app.schemas.users.users import UserOut
@@ -18,3 +18,6 @@ class GetRequestsResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+ListGetRequestsResponse = List[GetRequestsResponse]

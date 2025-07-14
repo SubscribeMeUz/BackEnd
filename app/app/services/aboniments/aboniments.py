@@ -1,8 +1,5 @@
 from sqlalchemy import func, cast, literal, Interval
 from sqlalchemy.orm import Session, joinedload, with_loader_criteria
-from fastapi import Request
-from urllib.parse import urljoin
-from datetime import datetime, timedelta
 from app.models.providers.providers import Providers
 from app.models.provider_tabs.provider_tabs import ProviderTabs
 from app.models.aboniments.aboniments import Aboniments
@@ -13,7 +10,7 @@ from app.models.purchases.purchases import Purchases
 from app.app.services.providers import providers as app_providers
 
 
-def get_user_purchased_aboniments(db: Session, user: Users, request: Request):
+def get_user_purchased_aboniments(db: Session, user: Users):
     resp = (
         db
         .query(Aboniments)
@@ -31,13 +28,10 @@ def get_user_purchased_aboniments(db: Session, user: Users, request: Request):
         .order_by(Purchases.recorded_date.desc())
         .all()
     )
-
-    for i in resp:
-        i.provider.logo_url = urljoin(request.base_url.__str__(), i.provider.logo_path)
     return resp
 
 
-def get_provider_aboniments(db: Session, provider_id: int, request: Request) -> Providers:
+def get_provider_aboniments(db: Session, provider_id: int) -> Providers:
     provider: Providers = (
         db
         .query(Providers)
@@ -55,4 +49,4 @@ def get_provider_aboniments(db: Session, provider_id: int, request: Request) -> 
     )
     if not provider:
         raise ValueError("Not found!")
-    return app_providers.add_logo_url(provider, request)
+    return provider

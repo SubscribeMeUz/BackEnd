@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 
 
 class ProviderTabBase(BaseModel):
@@ -29,6 +29,9 @@ class ProviderTabOut(ProviderTabBase, ProviderBaseId):
 
     class Config:
         from_attributes = True
+
+
+ListProviderTabOut = List[ProviderTabOut]
 
 
 class AddedOrDeletedObjectResponse(BaseModel):

@@ -4,6 +4,7 @@ from logging.handlers import TimedRotatingFileHandler
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from app.middleware.routes import RewriteStaticPathsMiddleware
 from app.app.api_routers import user_auth
 
 from app.web.api_routes import create_tables
@@ -49,6 +50,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(RewriteStaticPathsMiddleware)
 
 app.include_router(user_auth.router)
 app.include_router(user.router)

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict
+from typing import Optional, List
 from datetime import datetime
 from app.app.schemas.users.users import UserOut
 from app.web.schemas.packages.packages import AbonimentPackageOut
@@ -11,7 +11,7 @@ class ProviderLessOut(BaseModel):
     id: int
     name: str
     owner: UserOut
-    logo_url: Optional[str] = ''
+    logo_path: str = ''
     registred_date: datetime
 
     class Config:
@@ -53,6 +53,9 @@ class AbonimentOut(AbonimentBase, AbonimentId):
 
     class Config:
         from_attributes = True
+
+
+ListAbonimentOut = List[AbonimentOut]
 
 
 class AbonimentLessOut(AbonimentBase, AbonimentId):

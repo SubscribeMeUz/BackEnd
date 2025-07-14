@@ -1,7 +1,7 @@
-from pydantic import BaseModel, field_validator, model_validator, model_serializer
-from datetime import datetime, time
+from pydantic import BaseModel, field_validator, model_validator
+from datetime import datetime
 from fastapi import HTTPException
-from typing import Optional, Literal, Union, List
+from typing import Optional, List
 from enum import Enum
 
 
@@ -113,7 +113,6 @@ class User(BaseModel):
 
 class UserChangeRequest(BaseModel):
     username: Optional[str] = None
-    password: Optional[str] = None
     new_password: Optional[str] = None
     phone: Optional[str] = None
     full_name: Optional[str] = None
@@ -137,6 +136,9 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+ListUserOut = List[UserOut]
 
 
 class UserLessOut(BaseModel):

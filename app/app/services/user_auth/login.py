@@ -5,7 +5,6 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from app.config import config
-from app.db.database import SessionLocal
 from app.middleware.auth import AuthHandler
 from app.models.users.users import Users
 from app.app.schemas.users import users as sc
@@ -52,9 +51,11 @@ def store_otp(request: sc.OTPPhoneRegisterRequest, code: str):
 
 
 def verify_otp(phone: str, code: str) -> bool:
-    return True
+    raw_data = redis_storage.hgetall(phone)
+    data = {k.decode(): v.decode() for k, v in raw_data.items()}
+    info = sc.OTPPhoneVerifyModel(**data)
+    return info
     try:
-        raw_data = redis_storage.hgetall(phone)
         data = {k.decode(): v.decode() for k, v in raw_data.items()}
         info = sc.OTPPhoneVerifyModel(**data)
         if not info:

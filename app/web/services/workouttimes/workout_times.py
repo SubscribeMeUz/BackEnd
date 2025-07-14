@@ -34,7 +34,7 @@ def add_workout_time(db: Session, request: sc.WorkOutTimeAddRequest):
 
 
 def edit_workout_time(db: Session, time_id: int, request: sc.WorkOutTimeEditRequest):
-    wk_time = get_workout_time(db=db, time_id=time_id)
+    wk_time = get_workout_time(time_id=time_id)
     for field, value in request.model_dump().items():
         if value is not None:
             setattr(wk_time, field, value)
@@ -48,21 +48,8 @@ def edit_workout_time(db: Session, time_id: int, request: sc.WorkOutTimeEditRequ
         raise err
 
 
-def get_worjout_time(db: Session, request: sc.WorkOutTimeEditRequest, id: int):
-    resp = db.query(WorkOutTimes).filter(WorkOutTimes.id == id).first()
-    resp.filter(WorkOutTimes.discount == request.discount)
-    if request.discount:
-        resp.discount == request.discount
-    if request.from_time:
-        resp.from_time = request.from_time
-    if request.to_time:
-        resp.to_time = request.to_time
-    if request.provider_id:
-        resp.provider_id = request.provider_id
-
-
 def delete_workout_time(db: Session, time_id: int) -> sc.AddedOrDeletedObjectRescponse:
-    wk_time = get_workout_time(db=db, time_id=time_id)
+    wk_time = get_workout_time(time_id=time_id)
     db.delete(wk_time)
     try:
         db.commit()

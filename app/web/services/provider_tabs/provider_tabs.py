@@ -36,7 +36,7 @@ def add_provider_tab(db: Session, request: sc.ProviderTabAddRequest):
 
 
 def edit_tab(db: Session, tab_id: int, request: sc.ProviderTabEditRequest):
-    tab = get_tab(db=db, tab_id=tab_id)
+    tab = get_tab(tab_id=tab_id)
     
     for field, value in request.model_dump().items():
         if value is not None:
@@ -53,7 +53,7 @@ def edit_tab(db: Session, tab_id: int, request: sc.ProviderTabEditRequest):
 
 
 def delete_tab(db: Session, tab_id: int) -> sc.AddedOrDeletedObjectResponse:
-    tab = get_tab(db=db, tab_id=tab_id)
+    tab = get_tab(tab_id=tab_id)
     db.delete(tab)
     try:
         db.commit()

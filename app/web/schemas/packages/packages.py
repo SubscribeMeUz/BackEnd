@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional
 
 
-class AddedOrDeletedObjectRescponse(BaseModel):
+class AddedOrDeletedObjectResponse(BaseModel):
     result: Literal["Ok", "Failed"]
 
 
@@ -40,3 +40,5 @@ class AbonimentPackageOut(AbonimentPackageBase, AbonimentPackageId):
     class Config:
         from_attributes = True
 
+
+ListAbonimentPackageOut = List[AbonimentPackageOut]

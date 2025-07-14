@@ -1,8 +1,6 @@
-from fastapi import Request
-from typing import List
-from urllib.parse import urljoin
+import logging
 from datetime import datetime, timedelta
-from sqlalchemy.orm import Session, join, joinedload, contains_eager
+from sqlalchemy.orm import Session, joinedload, contains_eager
 from app.models.users.users import Users
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 from app.models.purchases.purchases import Purchases
@@ -13,16 +11,7 @@ from app.app.schemas.visitation_logs import visitation_logs as sc
 from app.web.schemas.purchases import purchases as web_purchases_sc
 
 
-def add_logo_to_providers(providers: List[Providers], request: Request):
-    for pr in providers:
-        setattr(pr, 'logo_url', urljoin(request.base_url.__str__(),
-                                        pr.logo_path))
-
-
-def add_logo_url(log: VisitationLogs, request: Request):
-    log.purchase.aboniment.provider.logo_url = urljoin(
-        request.base_url.__str__(), log.purchase.aboniment.provider.logo_path)
-    return log
+logger = logging.getLogger(__name__)
 
 
 def check_purchase_is_valid(db: Session, user: Users, provider_id: int, aboniment_id: int):
@@ -91,7 +80,7 @@ def check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonimen
     return purchase
 
 
-def get_user_visitation_log(db: Session, log_id: int, request: Request):
+def get_user_visitation_log(db: Session, log_id: int):
     resp = (
         db
         .query(VisitationLogs)
@@ -106,12 +95,12 @@ def get_user_visitation_log(db: Session, log_id: int, request: Request):
                 VisitationLogs.is_deleted == False)
         .first()
     )
-    add_logo_url(log=resp, request=request)
+    if not resp:
+        raise ValueError("VisitationLog not found!")
     return resp
 
 
 def get_user_visitations(db: Session, user: Users,
-                         http_request: Request,
                          aboniment_id: int = None,
                          provider_id: int = None):
     query = (
@@ -141,19 +130,17 @@ def get_user_visitations(db: Session, user: Users,
     )
 
     providers = query.distinct(Providers.id).all()
-    add_logo_to_providers(providers, http_request)
     return providers
 
 
-def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, http_request: Request):
+def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, user: Users):
     provider = db.query(Providers).filter(Providers.id == request.provider_id).first()
     if not provider:
         raise ValueError("Provider not found")
-    user = db.query(Users).filter(Users.id == request.user_id).first()
-    if not user:
-        raise ValueError("User not found")
-    
-    purchase: Purchases = check_purchase_is_valid(db=db, user=user, provider_id=request.provider_id)
+
+    purchase: Purchases = check_purchase_is_valid(user=user,
+                                                  provider_id=request.provider_id,
+                                                  aboniment_id=request.aboniment_id)
 
     new_log = VisitationLogs(
         user_id = user.id,
@@ -169,5 +156,17 @@ def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, http_re
 
     return {
         "result":"Ok",
-        "log": get_user_visitation_log(db=db, log_id=new_log.id, request=http_request)
+        "log": get_user_visitation_log(log_id=new_log.id)
     }
+
+
+def delete_log(db: Session, log_id: int):
+    try:
+        resp = db.query(VisitationLogs).filter(VisitationLogs.id == log_id).first()
+        db.delete(resp)
+        db.commit()
+        return {'result': 'deleted!'}
+    except Exception as err:
+        logger.error(err)
+        db.rollback()
+        raise err

@@ -32,5 +32,8 @@ class WorkoutTimeOut(WorkOutTimeBase, WorkOutTimeId):
         from_attributes = True
 
 
+ListWorkoutTimeOut = List[WorkoutTimeOut]
+
+
 class AddedOrDeletedObjectRescponse(BaseModel):
     result: Literal["Ok", "Failed"]

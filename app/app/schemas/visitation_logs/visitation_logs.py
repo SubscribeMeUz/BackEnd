@@ -1,6 +1,6 @@
+from typing import List
 from pydantic import BaseModel, model_validator
-from datetime import datetime, date, time, timedelta
-from typing import List, Optional
+from datetime import datetime, time
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 
 
@@ -72,21 +72,19 @@ class ProviderTreeOut(BaseModel):
     name: str
     location_latt: str
     location_long: str
-    logo_url: str
+    logo_path: str
     aboniments: List[AbonimentTreeOut]
 
     class Config:
         from_attributes = True
 
 
+ListProviderTreeOut = List[ProviderTreeOut]
+
+
 class VisitationLogAddRequest(BaseModel):
-<<<<<<< HEAD
     provider_id: int
     aboniment_id: int
-=======
-    user_id: int
-    provider_id: int
->>>>>>> 5039c31bd8b4bdc9d3214f17050afae329030d06
 
     class Config:
         from_attribute = True
@@ -104,7 +102,7 @@ class ProviderOut(BaseModel):
     name: str
     location_latt: str
     location_long: str
-    logo_url: str
+    logo_path: str
 
     class Config:
         from_attributes = True

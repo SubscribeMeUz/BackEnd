@@ -22,7 +22,7 @@ class Providers(Base):
     aboniment_packages = relationship("AbonimentPackage", back_populates="provider")
     workout_times = relationship("WorkOutTimes", back_populates="provider")
     provider_tabs = relationship("ProviderTabs", back_populates="provider")
-    photos = relationship("Photos", backref='provider')
+    photos = relationship("Photos", back_populates='provider')
 
     registred_date = Column(DateTime, default=func.now())
 

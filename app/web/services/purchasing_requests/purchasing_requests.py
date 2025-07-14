@@ -1,5 +1,4 @@
 import logging
-from fastapi import Request
 from sqlalchemy.orm import Session, joinedload
 from app.models.purchases.purchasing_requests import PurchasingRequests
 from app.models.users.users import Users
@@ -28,7 +27,6 @@ def get_new_purchasing_requests(db: Session):
 
 
 def set_purchasing_request_status(db: Session,
-                                  base_request: Request,
                                   request_id: int,
                                   status: app_sc.PurchasingRequestsStatuses):
     request: PurchasingRequests = db.query(PurchasingRequests).filter_by(id=request_id).first()
@@ -38,7 +36,7 @@ def set_purchasing_request_status(db: Session,
     if status == app_sc.PurchasingRequestsStatus.ACCESSED:
         purchase_add = PurchasePostRequest(aboniment_id=request.aboniment_id,
                                            user_id=request.user_id)
-        add_purchase(db=db, request=purchase_add, base_request=base_request)
+        add_purchase(request=purchase_add)
     elif status == app_sc.PurchasingRequestsStatus.NEW:
         raise ValueError("Bu statusni ortga qaytarish foydasiz va mumkin emas!")
     else:

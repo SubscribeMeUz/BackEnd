@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Literal
+from typing import Literal, List
 from app.app.schemas.aboniments import aboniments as ab_sc
 
 
@@ -23,3 +23,6 @@ class UserRequests(BaseModel):
     recorded_date: datetime
     status: PurchasingRequestsStatuses
     aboniment: ab_sc.AbonimentsWithPackage
+
+
+ListUserRequests = List[UserRequests]

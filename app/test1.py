@@ -35,7 +35,6 @@ def post_request_status(endpoint, json_body):
         return None
 
 
-
 endpoint = 'sendVerificationMessage'
 
 json_body = {

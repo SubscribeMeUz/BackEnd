@@ -1,6 +1,5 @@
 from typing import List, Optional
-from fastapi import Request, Depends
-from pydantic import BaseModel, computed_field, field_validator
+from pydantic import BaseModel
 from app.app.schemas.users.users import UserOut
 from app.web.schemas.aboniments.aboniments import AbonimentLessOut
 from app.web.schemas.packages.packages import AbonimentPackageOut
@@ -9,16 +8,12 @@ from app.web.schemas.workouttimes.workout_times import WorkoutTimeOut
 from datetime import datetime, time
 
 
-def get_request(request: Request):
-    return request
-
-
 class ProviderBase(BaseModel):
     name: str
     location_latt: str
     location_long: str
     necessary_tools: Optional[str] = None
-    logo_url: str
+    logo_path: str = ''
     rules_description: Optional[str] = None
     
     owner: UserOut
@@ -33,6 +28,9 @@ class ProviderOut(ProviderBase, ProviderId):
 
     class Config:
         from_attributes = True
+
+
+ListProviderOut = List[ProviderOut]
 
 
 class ProvidersAllOut(BaseModel):
@@ -56,7 +54,7 @@ class ProviderDetailResponse(ProviderBase):
     location_latt: str
     location_long: str
     location_name: Optional[str] = ''
-    logo_url: str
+    logo_path: str = ''
 
     owner: UserOut
     aboniments: List[AbonimentLessOut]

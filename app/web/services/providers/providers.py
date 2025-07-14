@@ -1,14 +1,10 @@
-import os
 import math
 import uuid
 import shutil
 import logging
-from urllib.parse import urljoin
-from fastapi import HTTPException, Request, UploadFile
+from fastapi import UploadFile
 from typing import List
-from sqlalchemy import literal
 from sqlalchemy.orm import Session, joinedload, Query
-from sqlalchemy.sql import or_
 from app.models.users.users import Users
 from app.models.aboniments.aboniments import Aboniments
 from app.models.purchases.purchases import Purchases
@@ -21,31 +17,12 @@ from geopy.geocoders import Nominatim
 logger = logging.getLogger(__name__)
 
 
-def add_logo_url(resp: List[Providers] | Providers, request: Request):
-    if resp is None:
-        return
-    q = False
-    if isinstance(resp, Providers):
-        q = True
-        resp = [resp]
-
-    for pr in resp:
-        setattr(pr, 'logo_url', urljoin(request.base_url.__str__(), pr.logo_path))
-        if pr.photos:
-            for photo in pr.photos:
-                setattr(photo, 'photo_url', urljoin(request.base_url.__str__(), photo.path))
-    if q:
-        return resp[0]
+def get_all_providers(db: Session):
+    resp = db.query(Providers).options(joinedload(Providers.owner)).all()
     return resp
 
 
-def get_all_providers(db: Session, request: Request):
-    resp = db.query(Providers).options(joinedload(Providers.owner)).all()
-    return add_logo_url(resp, request)
-
-
 def get_all_providers_with_filters(
-        request: Request,
         db: Session,
         page: int,
         page_size: int,
@@ -76,11 +53,11 @@ def get_all_providers_with_filters(
         "page": page,
         "total_page": math.ceil(total_count / page_size),
         "limit": page_size,
-        "data": add_logo_url(resp, request)
+        "data": resp
     }
 
 
-def get_provider(request: Request, db: Session, provider_id: int) -> Providers:
+def get_provider(db: Session, provider_id: int) -> Providers:
     resp: Providers = (
         db
         .query(Providers)
@@ -96,15 +73,15 @@ def get_provider(request: Request, db: Session, provider_id: int) -> Providers:
     if not resp:
         raise ValueError("Provider not found!")
     setattr(resp, "pic_hours", [])
-    return add_logo_url(resp, request)
-
-
-def get_about_more_provider(db: Session, provider_id: int):
-    resp = get_provider(db, provider_id)
     return resp
 
 
-def get_providers_related_by_user(db: Session, user: Users, request: Request):
+def get_about_more_provider(provider_id: int):
+    resp = get_provider(provider_id=provider_id)
+    return resp
+
+
+def get_providers_related_by_user(db: Session, user: Users):
     resp = (
         db
         .query(Providers)
@@ -114,10 +91,10 @@ def get_providers_related_by_user(db: Session, user: Users, request: Request):
         .filter(Purchases.user_id == user.id)
         .all()
     )
-    return add_logo_url(resp, request)
+    return resp
 
 
-def get_providers_by_owner(db: Session, owner_id: int, request: Request):
+def get_providers_by_owner(db: Session, owner_id: int):
     resp = (
         db
         .query(Providers)
@@ -125,11 +102,10 @@ def get_providers_by_owner(db: Session, owner_id: int, request: Request):
         .filter(Providers.owner_id == owner_id)
         .all()
     )
-    return add_logo_url(resp, request)
+    return resp
 
 
 def add_provider(db: Session,
-                 request: Request,
                  name: str,
                  location_latt: str,
                  location_long: str,
@@ -151,12 +127,11 @@ def add_provider(db: Session,
         db.add(pv)
         db.commit()
         db.refresh(pv)
-        pv = add_logo_url(pv, request)
         return {"result": "Ok", "provider": ProviderOut.model_validate(pv)}
     except Exception as err:
         db.rollback()
         logger.error(err)
-        raise HTTPException(400, {"result": "Failed", "error": f"{err}"})
+        raise err
 
 
 def get_location_name(lat: float, lon: float) -> str:
@@ -197,8 +172,11 @@ def edit_provider(db: Session,
         db.commit()
     except Exception as err:
         db.rollback()
-        return str(err)
-    return True
+        raise err
+    return {
+        "result": "Ok",
+        "message": "Edited!"
+    }
 
 
 def delete_provider(db: Session, provider_id: int):
@@ -211,8 +189,8 @@ def delete_provider(db: Session, provider_id: int):
         return {'result': 'failed', 'error': f'{err}'}
 
 
-def save_provider_photo(request: Request, db: Session, provider_id: int, photo: str):
-    provider = get_provider(request=request, db=db, provider_id=provider_id)
+def save_provider_photo(db: Session, provider_id: int, photo: str):
+    provider = get_provider(provider_id=provider_id)
     limit = 10
     if len(provider.photos) >= limit:
         raise ValueError(f"Limit is {limit}!")
@@ -225,7 +203,7 @@ def save_provider_photo(request: Request, db: Session, provider_id: int, photo: 
         db.commit()
         return {
             "result": "Ok",
-            "photo": urljoin(request.base_url.__str__(), p.path)
+            "photo": p.path
         }
     except Exception as err:
         db.rollback()
