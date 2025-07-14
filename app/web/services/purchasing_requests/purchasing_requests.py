@@ -1,0 +1,54 @@
+import logging
+from fastapi import Request
+from sqlalchemy.orm import Session, joinedload
+from app.models.purchases.purchasing_requests import PurchasingRequests
+from app.models.users.users import Users
+from app.models.purchases.purchases import Purchases
+from app.models.aboniments.aboniments import Aboniments
+from app.models.providers.providers import Providers
+from app.app.schemas.purchasing_requests import purchasing_requests as app_sc
+from app.web.services.purchases.purchases import add_purchase, PurchasePostRequest
+
+
+logger = logging.getLogger(__name__)
+
+
+def get_new_purchasing_requests(db: Session):
+    resp = (
+        db
+        .query(PurchasingRequests)
+        .options(joinedload(PurchasingRequests.user),
+                 joinedload(PurchasingRequests.aboniment)
+                 .joinedload(Aboniments.aboniment_package))
+        .filter(PurchasingRequests.status == app_sc.PurchasingRequestsStatus.NEW)
+        .order_by(PurchasingRequests.id.desc())
+        .all()
+    )
+    return resp
+
+
+def set_purchasing_request_status(db: Session,
+                                  base_request: Request,
+                                  request_id: int,
+                                  status: app_sc.PurchasingRequestsStatuses):
+    request: PurchasingRequests = db.query(PurchasingRequests).filter_by(id=request_id).first()
+    if not request:
+        raise ValueError("Not found!")
+    old_status = request.status
+    if status == app_sc.PurchasingRequestsStatus.ACCESSED:
+        purchase_add = PurchasePostRequest(aboniment_id=request.aboniment_id,
+                                           user_id=request.user_id)
+        add_purchase(db=db, request=purchase_add, base_request=base_request)
+    elif status == app_sc.PurchasingRequestsStatus.NEW:
+        raise ValueError("Bu statusni ortga qaytarish foydasiz va mumkin emas!")
+    else:
+        pass
+    request.status = status
+    db.add(request)
+    try:
+        db.commit()
+        return {"result": "Ok",
+                "message": f"Status changed to `{request.status}` from `{old_status}`"}
+    except Exception as err:
+        logger.error(err)
+        raise ValueError(f"Error: {err}")
