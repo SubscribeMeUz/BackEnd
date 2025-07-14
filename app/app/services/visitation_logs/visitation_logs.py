@@ -145,14 +145,15 @@ def get_user_visitations(db: Session, user: Users,
     return providers
 
 
-def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, http_request: Request, user: Users):
+def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, http_request: Request):
     provider = db.query(Providers).filter(Providers.id == request.provider_id).first()
     if not provider:
         raise ValueError("Provider not found")
-
-    purchase: Purchases = check_purchase_is_valid(db=db, user=user,
-                                                  provider_id=request.provider_id,
-                                                  aboniment_id=request.aboniment_id)
+    user = db.query(Users).filter(Users.id == request.user_id).first()
+    if not user:
+        raise ValueError("User not found")
+    
+    purchase: Purchases = check_purchase_is_valid(db=db, user=user, provider_id=request.provider_id)
 
     new_log = VisitationLogs(
         user_id = user.id,
