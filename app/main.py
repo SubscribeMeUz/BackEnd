@@ -46,6 +46,7 @@ origins = [
     "http://localhost:3000",
 ]
 
+app.add_middleware(RewriteStaticPathsMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -53,8 +54,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-app.add_middleware(RewriteStaticPathsMiddleware)
 
 app.include_router(user_auth.router)
 app.include_router(user.router)
