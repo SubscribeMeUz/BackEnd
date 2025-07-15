@@ -41,7 +41,10 @@ logger.addHandler(handler)
 
 logger.info("Starting fit app")
 
-origins = ["*"]
+origins = [
+    "https://admin.subme.uz",
+    "http://localhost:3000",
+]
 
 app.add_middleware(
     CORSMiddleware,

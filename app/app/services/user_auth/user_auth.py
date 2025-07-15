@@ -6,9 +6,10 @@ from app.web.schemas.users.roles import Roles
 from app.models.users.users import Users
 from app.models.refresh_token import RefreshToken
 from datetime import datetime, date
+from app.helpers.auth import auth_handler
 
 
-def add_user(db: Session, request: sc.OTPPhoneVerifyModel, info: sc.OTPPhoneVerifyModel, auth_handler):
+def add_user(db: Session, request: sc.OTPPhoneVerifyModel, info: sc.OTPPhoneVerifyModel):
     user = db.query(Users).filter_by(phone=request.phone).first()
 
     if not user:
@@ -38,7 +39,7 @@ def add_user(db: Session, request: sc.OTPPhoneVerifyModel, info: sc.OTPPhoneVeri
     }
 
 
-def refresh_token(db: Session, auth_handler, token: str):
+def refresh_token(db: Session, token: str):
     token_row = db.query(RefreshToken).filter_by(token=token).first()
     if not token_row or token_row.expires < datetime.utcnow():
         raise HTTPException(403, {'detail': 'Refresh token yaroqsiz yoki eskirgan'})
