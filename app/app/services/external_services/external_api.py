@@ -21,6 +21,7 @@ def set_token_in_cache(token: str):
     token_date = CachedTokenData(token=token, fetched_at=datetime.now(timezone.utc))
     serilized = json.dumps(token_date.model_dump(),default=str)
     redis_storage.hset(TOKEN_KEY,TOKEN_EXPIRE, serilized)
+    redis_storage.expire(TOKEN_KEY, TOKEN_EXPIRE)
 
 def fetch_new_sms_token() -> SMSTokenResponse:
     try:
