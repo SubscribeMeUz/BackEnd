@@ -19,11 +19,19 @@ def get_new_purchasing_requests(db: Session, admin: Users):
         .query(PurchasingRequests)
         .options(joinedload(PurchasingRequests.user),
                  joinedload(PurchasingRequests.aboniment)
-                 .joinedload(Aboniments.aboniment_package))
+                 .options(joinedload(Aboniments.aboniment_package),
+                          joinedload(Aboniments.provider))
+                 )
         .filter(PurchasingRequests.status == app_sc.PurchasingRequestsStatus.NEW)
     )
     if admin.role != Roles.admin:
-        resp = resp.filter(PurchasingRequests.aboniment.provider.owner_id == admin.id)
+        resp = resp.filter(
+            PurchasingRequests.aboniment.has(
+                Aboniments.provider.has(
+                    Providers.owner_id == admin.id
+                )
+            )
+        )
 
     resp = (
         resp

@@ -59,7 +59,13 @@ def get_filtered_purchases(db: Session,
                  joinedload(Purchases.user))
     )
     if owner.role != Roles.admin:
-        query = query.filter(Purchases.aboniment.provider.owner_id == owner.id)
+        query = query.filter(
+            Purchases.aboniment.has(
+                Aboniments.provider.has(
+                    Providers.owner_id == owner.id
+                )
+            )
+        )
     if date:
         start = datetime.combine(date, datetime.min.time())
         end = datetime.combine(date, datetime.max.time())
