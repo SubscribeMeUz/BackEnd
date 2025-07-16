@@ -22,7 +22,7 @@ def get_all_users(db: Session,
     query = db.query(Users)
     if admin.role != Roles.admin:
         query = query.filter(Users.purchases.has(
-            Purchases.aboniment.has(
+            Purchases.aboniment.any(
                 Aboniments.provider.has(
                     Providers.owner_id == admin.id
                 )
