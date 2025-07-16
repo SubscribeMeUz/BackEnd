@@ -52,11 +52,12 @@ def store_otp(request: sc.OTPPhoneRegisterRequest, code: str):
 
 def verify_otp(phone: str, code: str) -> bool:
     raw_data = redis_storage.hgetall(phone)
-    data = {k.decode(): v.decode() for k, v in raw_data.items()}
-    info = sc.OTPPhoneVerifyModel(**data)
-    return info
+    #data = {k.decode(): v.decode() for k, v in raw_data.items()}
+    #info = sc.OTPPhoneVerifyModel(**data)
     try:
         data = {k.decode(): v.decode() for k, v in raw_data.items()}
+        if not data:
+            return False
         info = sc.OTPPhoneVerifyModel(**data)
         if not info:
             return False
@@ -64,6 +65,7 @@ def verify_otp(phone: str, code: str) -> bool:
             return False
         if not info.code == code:
             return False
+        clear_storage(phone)
         return info
     
     except Exception as err:
@@ -72,7 +74,6 @@ def verify_otp(phone: str, code: str) -> bool:
             "title": "error",
             "error_message": f'{err}'
         })
-
 
 def clear_storage(phone: str):
     redis_storage.delete(phone)

@@ -6,6 +6,8 @@ from app.app.services.user_auth.login import (login_with_otp,
 from app.web.services.user_auth.login import create_user 
 from app.app.schemas.users import users as sc
 from app.app.services.user_auth import user_auth as sv
+from app.app.services.external_services.external_api import sendOTP 
+from app.app.schemas.external_services.sms_login_response import SendMessage as smsObject
 from app.helpers.auth import auth
 
 
@@ -70,8 +72,12 @@ router = APIRouter(
 def request_otp(request: sc.OTPPhoneRegisterRequest):
     code = generate_otp()
     store_otp(request, code)
-    send_sms(request.phone, code)
+    #send_sms(request.phone, code)
+    #try:
+    sendOTP(request.phone, code)
     return {'status': 'OTP sent'}
+    #except Exception as error:
+     #   raise HTTPException(status_code=500, detail= str(error))
 
 
 @router.post('/auth/verify-otp')
