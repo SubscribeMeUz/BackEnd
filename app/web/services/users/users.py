@@ -21,13 +21,15 @@ def get_all_users(db: Session,
                   admin: Users = None):
     query = db.query(Users)
     if admin.role != Roles.admin:
-        query = query.filter(Users.purchases.has(
-            Purchases.aboniment.any(
-                Aboniments.provider.has(
-                    Providers.owner_id == admin.id
+        query = query.filter(
+            Users.purchases.any(
+                Purchases.aboniment.has(
+                    Aboniments.provider.has(
+                        Providers.owner_id == admin.id
+                    )
                 )
             )
-        ))
+        )
 
     if not page:
         return query.all()
