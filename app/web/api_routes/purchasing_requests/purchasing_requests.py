@@ -21,5 +21,6 @@ def post_api(request_id: int,
                  "Status should be one of :"
                 f"``{app_sc.PurchasingRequestsStatus.ACCESSED}`` | "
                 f"``{app_sc.PurchasingRequestsStatus.DENIED}``"
-             ))):
-    return sv.set_purchasing_request_status(request_id=request_id, status=status)
+             )),
+             admin=provider_auth()):
+    return sv.set_purchasing_request_status(request_id=request_id, status=status, admin=admin)
