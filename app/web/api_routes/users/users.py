@@ -2,24 +2,24 @@ import logging
 from fastapi import APIRouter, Query
 from app.web.services.users import users as sv
 from app.app.schemas.users import users as sc
-from app.helpers.auth import auth, admin_auth
+from app.helpers.auth import auth, admin_auth, provider_auth
 
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix = "/web/users", tags=['Users'],
-                   dependencies=[admin_auth()])
+router = APIRouter(prefix = "/web/users", tags=['Users'])
 
 
 @router.get('/get/all', status_code=200, response_model=sc.ListUserOut)
-def get_all_users():
-    return sv.get_all_users()
+def get_all_users(admin = provider_auth()):
+    return sv.get_all_users(admin=admin)
 
 
 @router.get('/get/all/users', status_code=200, response_model=sc.UsersListOut)
 def get_all_users(page: int = Query(1, ge=1),
                   page_size: int = Query(20, le=100),
-                  query: str = Query(None)):
-    return sv.get_all_users(page=page, page_size=page_size, string_query=query)
+                  query: str = Query(None),
+                  admin = provider_auth()):
+    return sv.get_all_users(page=page, page_size=page_size, string_query=query, admin=admin)
 
 
 @router.get('/get/{user_id}', status_code=200, response_model=sc.UserOut)

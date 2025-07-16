@@ -12,7 +12,7 @@ class Purchases(Base):
     aboniment = relationship("Aboniments", back_populates='purchases', foreign_keys=[aboniment_id])
 
     user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship("Users", backref='purchases', foreign_keys=[user_id])
+    user = relationship("Users", back_populates='purchases', foreign_keys=[user_id])
 
     used_count = Column(Integer, server_default='0')
     status = Column(String(255), server_default="new")

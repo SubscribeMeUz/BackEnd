@@ -3,8 +3,12 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import or_
 from app.models.users.users import Users
+from app.models.providers.providers import Providers
+from app.models.aboniments.aboniments import Aboniments
+from app.models.purchases.purchases import Purchases
 from app.app.schemas.users import users as sc
 from app.helpers.auth import auth_handler
+from app.web.schemas.users.roles import Roles
 
 
 logger = logging.getLogger(__name__)
@@ -13,8 +17,18 @@ logger = logging.getLogger(__name__)
 def get_all_users(db: Session,
                   page: int = None,
                   page_size: int = None,
-                  string_query: str = None):
+                  string_query: str = None,
+                  admin: Users = None):
     query = db.query(Users)
+    if admin.role != Roles.admin:
+        query = query.filter(Users.purchases.has(
+            Purchases.aboniment.has(
+                Aboniments.provider.has(
+                    Providers.owner_id == admin.id
+                )
+            )
+        ))
+
     if not page:
         return query.all()
     if string_query:

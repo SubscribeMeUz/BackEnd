@@ -18,6 +18,7 @@ class Users(Base):
     registred_date = Column(DateTime, default=func.now())
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")
+    purchases = relationship("Purchases", back_populates="user")
     visitation_logs = relationship("VisitationLogs", back_populates="user")
 
     is_deleted = Column(Boolean, server_default='0')
