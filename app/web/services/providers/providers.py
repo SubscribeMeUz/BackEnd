@@ -11,14 +11,20 @@ from app.models.purchases.purchases import Purchases
 from app.models.providers.providers import Providers
 from app.models.photos.photos import Photos
 from app.web.schemas.providers.providers import ProviderOut
+from app.web.schemas.users.roles import Roles
 from geopy.geocoders import Nominatim
 
 
 logger = logging.getLogger(__name__)
 
 
-def get_all_providers(db: Session):
-    resp = db.query(Providers).options(joinedload(Providers.owner)).all()
+def get_all_providers(db: Session, owner: Users):
+    resp = db.query(Providers)
+
+    if owner.role != Roles.admin:
+        resp = resp.filter(Providers.owner_id == owner.id)
+    resp = resp.options(joinedload(Providers.owner)).all()
+
     return resp
 
 
@@ -26,13 +32,17 @@ def get_all_providers_with_filters(
         db: Session,
         page: int,
         page_size: int,
-        string_query: str
+        string_query: str,
+        owner: Users
 ):
     resp: Query = (
         db
         .query(Providers)
         .options(joinedload(Providers.owner))
     )
+    if owner.role != Roles.admin:
+        resp = resp.filter(Providers.owner_id == owner.id)
+
     if string_query:
         resp = resp.filter(
             Providers.name.ilike(f"{string_query}"),
@@ -47,7 +57,7 @@ def get_all_providers_with_filters(
         .limit(page_size)
         .all()
     )
-    
+
     return {
         "total": total_count,
         "page": page,
@@ -57,7 +67,11 @@ def get_all_providers_with_filters(
     }
 
 
-def get_provider(db: Session, provider_id: int) -> Providers:
+def get_provider(db: Session, provider_id: int):
+    return _get_provider(db=db, provider_id=provider_id)
+
+
+def _get_provider(db: Session, provider_id: int) -> Providers:
     resp: Providers = (
         db
         .query(Providers)
@@ -77,7 +91,7 @@ def get_provider(db: Session, provider_id: int) -> Providers:
 
 
 def get_about_more_provider(provider_id: int):
-    resp = get_provider(provider_id=provider_id)
+    resp = _get_provider(provider_id=provider_id)
     return resp
 
 
@@ -190,7 +204,7 @@ def delete_provider(db: Session, provider_id: int):
 
 
 def save_provider_photo(db: Session, provider_id: int, photo: str):
-    provider = get_provider(provider_id=provider_id)
+    provider = _get_provider(db=db, provider_id=provider_id)
     limit = 10
     if len(provider.photos) >= limit:
         raise ValueError(f"Limit is {limit}!")

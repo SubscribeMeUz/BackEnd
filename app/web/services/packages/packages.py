@@ -18,6 +18,10 @@ def get_all_packages(db: Session, provider_id: int):
 
 
 def get_package(db: Session, package_id: int):
+    return _get_package(db=db, package_id=package_id)
+
+
+def _get_package(db: Session, package_id: int):
     package = (
         db
         .query(AbonimentPackage)
@@ -53,7 +57,7 @@ def add_package(db: Session, request: sc.AbonimentPackageAddRequest):
 
 
 def edit_package(db: Session, package_id: int, request: sc.AbonimentPackageEditRequest):
-    package = get_package(package_id=package_id)
+    package = _get_package(db=db, package_id=package_id)
 
     for field, value in request.model_dump().items():
         if value is not None:
@@ -70,7 +74,7 @@ def edit_package(db: Session, package_id: int, request: sc.AbonimentPackageEditR
 
 
 def delete_package(db: Session, package_id: int) -> sc.AddedOrDeletedObjectResponse:
-    package = get_package(package_id=package_id)
+    package = _get_package(db=db, package_id=package_id)
     db.delete(package)
     try:
         db.commit()

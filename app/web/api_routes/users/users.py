@@ -2,12 +2,12 @@ import logging
 from fastapi import APIRouter, Query
 from app.web.services.users import users as sv
 from app.app.schemas.users import users as sc
-from app.helpers.auth import auth
+from app.helpers.auth import auth, admin_auth
 
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix = "/web/users", tags=['Users'],
-                   dependencies=[auth()])
+                   dependencies=[admin_auth()])
 
 
 @router.get('/get/all', status_code=200, response_model=sc.ListUserOut)

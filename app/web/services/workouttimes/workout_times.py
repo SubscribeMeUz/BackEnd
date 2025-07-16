@@ -8,11 +8,15 @@ def get_all_workout_times(db: Session, provider_id: int):
     return resp
 
 
-def get_workout_time(db: Session, time_id: int) -> WorkOutTimes:
+def _get_workout_time(db: Session, time_id: int) -> WorkOutTimes:
     wk_time = db.query(WorkOutTimes).filter(WorkOutTimes.id == time_id).first()
     if not wk_time:
         raise ValueError("Not found!")
     return wk_time
+
+
+def get_workout_time(db: Session, time_id: int):
+    return _get_workout_time(db=db, time_id=time_id)
 
 
 def add_workout_time(db: Session, request: sc.WorkOutTimeAddRequest):
@@ -34,7 +38,7 @@ def add_workout_time(db: Session, request: sc.WorkOutTimeAddRequest):
 
 
 def edit_workout_time(db: Session, time_id: int, request: sc.WorkOutTimeEditRequest):
-    wk_time = get_workout_time(time_id=time_id)
+    wk_time = _get_workout_time(db=db, time_id=time_id)
     for field, value in request.model_dump().items():
         if value is not None:
             setattr(wk_time, field, value)
@@ -49,7 +53,7 @@ def edit_workout_time(db: Session, time_id: int, request: sc.WorkOutTimeEditRequ
 
 
 def delete_workout_time(db: Session, time_id: int) -> sc.AddedOrDeletedObjectRescponse:
-    wk_time = get_workout_time(time_id=time_id)
+    wk_time = _get_workout_time(db=db, time_id=time_id)
     db.delete(wk_time)
     try:
         db.commit()

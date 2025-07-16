@@ -5,17 +5,16 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from app.models.users.users import Users
-from app.db.database import SessionLocal
 from app.db.database import SessionManager
 from app.web.schemas.users.roles import Roles
 
 
-db = SessionLocal()
-
 class AuthHandler():
 
-    def __init__(self, check_admin: bool = False):
+    def __init__(self, check_admin: bool = False,
+                 check_provider: bool = False):
         self.check_admin = check_admin
+        self.check_provider = check_provider
 
     security = HTTPBearer()
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -39,25 +38,20 @@ class AuthHandler():
         )
 
     def decode_token(self, token):
-        #########################
-        if len(token) < 15:
-            with SessionManager() as db:
-                user = db.query(Users).filter(Users.username == token).first()
-                if user:
-                    return user
-        #########################
         try:
             payload = jwt.decode(token, self.secret, algorithms=['HS256'])
             if 'username' not in payload:
                 raise HTTPException(status_code=403, detail={'status':'Signature has expired'})
             with SessionManager() as db:
-                user = db.query(Users).filter(Users.username == payload['username']).first()
+                user: Users = db.query(Users).filter(Users.username == payload['username']).first()
                 if (user is None):
                     raise HTTPException(status_code=403, detail='Not authenticated!')
-                if self.check_admin and user.role == Roles.user:
+                if self.check_admin and user.role != Roles.admin:
                     raise HTTPException(status_code=403, detail={'status': 'User has no admin privilages'})
+                if self.check_provider and user.role == Roles.user:
+                    raise HTTPException(status_code=403, detail={'status': 'User has no provider privilages'})
                 return user
-        
+
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=403, detail={'status':'Signature has expired'})
         except jwt.InvalidTokenError as e:

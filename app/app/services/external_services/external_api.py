@@ -1,14 +1,15 @@
-import os
+import json
 import logging
 import requests
-import json
-from app.app.schemas.external_services.sms_login_response import SMSTokenResponse, CachedTokenData, SendMessage
-from app.app.redis_client.redis_client import redis_storage
 from datetime import datetime, timezone
-
+from app.app.redis_client.redis_client import redis_storage
+from app.app.schemas.external_services.sms_login_response import SMSTokenResponse, CachedTokenData, SendMessage
 from app.config.config import SMS_SERVER, SMS_SERVER_EMAIL, SMS_SERVER_PASSWORD, TOKEN_KEY, TOKEN_EXPIRE
 
+
 logger = logging.getLogger(__name__)
+
+
 def get_token_from_cache()->str|None:
     cached = redis_storage.hget(TOKEN_KEY, TOKEN_EXPIRE)
     if cached:
@@ -22,6 +23,7 @@ def set_token_in_cache(token: str):
     serilized = json.dumps(token_date.model_dump(),default=str)
     redis_storage.hset(TOKEN_KEY,TOKEN_EXPIRE, serilized)
     redis_storage.expire(TOKEN_KEY, TOKEN_EXPIRE)
+
 
 def fetch_new_sms_token() -> SMSTokenResponse:
     try:
@@ -39,34 +41,34 @@ def fetch_new_sms_token() -> SMSTokenResponse:
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
+
 def get_valid_token() -> str:
     token = get_token_from_cache()
     if token:
         return token
     new_token = fetch_new_sms_token()
-    print(type(new_token), new_token)
+    logger.info(type(new_token), new_token)
     set_token_in_cache(new_token.data.token)
     return new_token.data.token
 
+
 def sendOTP(phone: str, code: str):
-    # try:
-        otpForm ={
-                              "message":"Subme.uz sayti ga ro‘yxatdan o‘tish uchun  tasdiqlash kodi " + code,
-                              "mobile_phone":phone,
-                              "callback_url":"",
-                              "from": "4454"      
-                              }
-        logger.info(otpForm)
-        print(otpForm)
-        print(get_valid_token())
+    try:
+        otp_form = {
+            "message": "Subme.uz sayti ga ro‘yxatdan o‘tish uchun  tasdiqlash kodi " + code,
+            "mobile_phone": phone,
+            "callback_url": "",
+            "from": "4454"      
+        }
+        logger.info(otp_form)
         response = requests.post(
             SMS_SERVER + "/message/sms/send",
             headers= {"Content-Type": "application/x-www-form-urlencoded",
                      "Authorization" : f"Bearer {get_valid_token()}" },
-            data = otpForm
+            data = otp_form
         )
         response.raise_for_status()
         json_response = response.json()
         return json_response
-    # except requests.exceptions.RequestException as e:
-        # return {"error": str(e)}
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}

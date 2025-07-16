@@ -12,11 +12,15 @@ def get_all(db: Session, provider_id: int):
     return resp
 
 
-def get_tab(db: Session, tab_id: int):
+def _get_tab(db: Session, tab_id: int):
     tab: ProviderTabs = db.query(ProviderTabs).filter(ProviderTabs.id == tab_id).first()
     if not tab:
         raise ValueError("Not found")
     return tab
+
+
+def get_tab(db: Session, tab_id: int):
+    return _get_tab(db=db, tab_id=tab_id)
 
 
 def add_provider_tab(db: Session, request: sc.ProviderTabAddRequest):
@@ -36,7 +40,7 @@ def add_provider_tab(db: Session, request: sc.ProviderTabAddRequest):
 
 
 def edit_tab(db: Session, tab_id: int, request: sc.ProviderTabEditRequest):
-    tab = get_tab(tab_id=tab_id)
+    tab = _get_tab(db=db, tab_id=tab_id)
     
     for field, value in request.model_dump().items():
         if value is not None:
@@ -53,7 +57,7 @@ def edit_tab(db: Session, tab_id: int, request: sc.ProviderTabEditRequest):
 
 
 def delete_tab(db: Session, tab_id: int) -> sc.AddedOrDeletedObjectResponse:
-    tab = get_tab(tab_id=tab_id)
+    tab = _get_tab(db=db, tab_id=tab_id)
     db.delete(tab)
     try:
         db.commit()

@@ -2,8 +2,10 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from dataclasses import dataclass
 
+
 class TokenData(BaseModel):
     token: str
+
 
 class SMSTokenResponse(BaseModel):
     message: str
@@ -17,6 +19,7 @@ class SMSTokenResponse(BaseModel):
 class CachedTokenData(BaseModel):
     token:str
     fetched_at: datetime
+
 
 class SendMessage(BaseModel):
     mobile_phone: str

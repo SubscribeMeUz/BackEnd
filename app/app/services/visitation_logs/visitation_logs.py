@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 def check_purchase_is_valid(db: Session, user: Users, provider_id: int, aboniment_id: int):
+    return _check_purchase_is_valid(db=db, user=user, provider_id=provider_id, aboniment_id=aboniment_id)
+
+
+def _check_purchase_is_valid(db: Session, user: Users, provider_id: int, aboniment_id: int):
     if aboniment_id:
         purchase = (
             db
@@ -81,6 +85,10 @@ def check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonimen
 
 
 def get_user_visitation_log(db: Session, log_id: int):
+    return _get_user_visitation_log(db=db, log_id=log_id)
+
+
+def _get_user_visitation_log(db: Session, log_id: int):
     resp = (
         db
         .query(VisitationLogs)
@@ -138,7 +146,7 @@ def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, user: U
     if not provider:
         raise ValueError("Provider not found")
 
-    purchase: Purchases = check_purchase_is_valid(user=user,
+    purchase: Purchases = _check_purchase_is_valid(db=db, user=user,
                                                   provider_id=request.provider_id,
                                                   aboniment_id=request.aboniment_id)
 
@@ -156,7 +164,7 @@ def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, user: U
 
     return {
         "result":"Ok",
-        "log": get_user_visitation_log(log_id=new_log.id)
+        "log": _get_user_visitation_log(db=db, log_id=new_log.id)
     }
 
 

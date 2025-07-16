@@ -6,9 +6,10 @@ from app.models.aboniments.aboniments import Aboniments
 from app.models.providers.providers import Providers
 from app.models.users.users import Users
 from app.web.schemas.purchases.purchases import PurchasePostRequest
+from app.web.schemas.users.roles import Roles
 
 
-def get_purchase(db: Session, purchase_id: int) -> Purchases:
+def _get_purchase(db: Session, purchase_id: int) -> Purchases:
     resp = (
         db
         .query(Purchases)
@@ -30,12 +31,17 @@ def get_purchase(db: Session, purchase_id: int) -> Purchases:
     return resp
 
 
+def get_purchase(db: Session, purchase_id: int):
+    return _get_purchase(db=db, purchase_id=purchase_id)
+
+
 def get_filtered_purchases(db: Session,
                            aboniment_id: int,
                            page: int,
                            page_size: int,
                            date: datetime,
-                           user_id: int = None):
+                           user_id: int = None,
+                           owner: Users = None):
     offset = (page - 1) * page_size
     
     query = (
@@ -52,6 +58,8 @@ def get_filtered_purchases(db: Session,
                     .joinedload(Aboniments.workout_time),
                  joinedload(Purchases.user))
     )
+    if owner.role != Roles.admin:
+        query = query.filter(Purchases.aboniment.provider.owner_id == owner.id)
     if date:
         start = datetime.combine(date, datetime.min.time())
         end = datetime.combine(date, datetime.max.time())
@@ -152,7 +160,7 @@ def add_purchase(db: Session, request: PurchasePostRequest):
         db.commit()
         db.refresh(purchase)
         return {"result": "Ok",
-                "purchase": get_purchase(purchase_id=purchase.id)}
+                "purchase": _get_purchase(db=db, purchase_id=purchase.id)}
     except Exception as err:
         db.rollback()
         raise err
