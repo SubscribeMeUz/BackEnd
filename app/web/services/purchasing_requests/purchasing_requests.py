@@ -38,7 +38,7 @@ def set_purchasing_request_status(db: Session,
                                   status: app_sc.PurchasingRequestsStatuses,
                                   admin: Users):
     request: PurchasingRequests = db.query(PurchasingRequests).filter_by(id=request_id).first()
-    if not (admin.role != Roles.admin or request.aboniment.provider.owner_id != admin.id):
+    if not (admin.role == Roles.admin or request.aboniment.provider.owner_id == admin.id):
         raise ValueError("Bu so'rovga javob bermaysiz!")
     if not request:
         raise ValueError("Not found!")
