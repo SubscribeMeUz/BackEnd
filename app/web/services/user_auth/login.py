@@ -14,7 +14,7 @@ def login_user(request: sc.UserLogin, db: Session):
     if isinstance(request, sc.UserLogin):
         if (user is None) or (not auth_handler.verify_password(request.password, user.password)):
             logger.error(f"Invalid username and/or password! {request.username}")
-            raise ValueError(detail="Parol yoki Login noto'g'ri yozilgan!")
+            raise ValueError("Parol yoki Login noto'g'ri yozilgan!")
 
     logger.info("Access token creating")
     access_token = auth_handler.encode_token(user.username)
