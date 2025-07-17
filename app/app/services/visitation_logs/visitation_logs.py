@@ -150,11 +150,12 @@ def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, user: U
                                                   provider_id=request.provider_id,
                                                   aboniment_id=request.aboniment_id)
 
+    used_count = db.query(VisitationLogs).filter(VisitationLogs.user_id == user.id).count()
     new_log = VisitationLogs(
         user_id = user.id,
         purchase_id = purchase.id
     )
-    purchase.used_count += 1
+    purchase.used_count = used_count + 1
     try:
         db.add(new_log)
         db.add(purchase)
