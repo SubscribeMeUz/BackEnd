@@ -23,7 +23,7 @@ def get_aboniments(db: Session,
                    page: int,
                    page_size: int,
                    query: str,
-                   owner: Users) -> sc.AbonimentsResponse:
+                   owner: Users = None) -> sc.AbonimentsResponse:
     resp = (
         db
         .query(Aboniments)
@@ -44,7 +44,7 @@ def get_aboniments(db: Session,
                 joinedload(Aboniments.aboniment_package),
                 joinedload(Aboniments.provider_tab))
     )
-    if owner.role != Roles.admin:
+    if owner and owner.role != Roles.admin:
         resp = resp.filter(Providers.owner_id == owner.id)
 
     if query:

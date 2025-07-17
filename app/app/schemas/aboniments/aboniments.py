@@ -47,16 +47,13 @@ class MyPurchasedAbonimentResponse(BaseModel):
     provider: MyAbonimentProviderOut
 
     @model_validator(mode='before')
-    def f(self, aboniment: Aboniments):
+    def f(cls, aboniment: Aboniments):
         aboniment.label = aboniment.aboniment_package.label
         aboniment.title = aboniment.aboniment_package.title
         aboniment.subtitle = aboniment.aboniment_package.subtitle
-        aboniment.total_count = aboniment.aboniment_package.count
-        aboniment.aviable_count = (
-            aboniment.aboniment_package.count * len(aboniment.purchases)
-            -
-            sum([i.visitation_logs.__len__() for i in aboniment.purchases])
-        )
+        aboniment.total_count = aboniment.aboniment_package.count * len(aboniment.purchases)
+        aboniment.aviable_count = (aboniment.aboniment_package.count * len(aboniment.purchases) - 
+                                   sum([i.used_count for i in aboniment.purchases]))
         aboniment.expiry_days = aboniment.aboniment_package.expiry_days
         aboniment.expire_date = (aboniment.purchases[0].recorded_date + timedelta(days=aboniment.expiry_days)).date()
         aboniment.purchased_date = aboniment.purchases[0].recorded_date.date()

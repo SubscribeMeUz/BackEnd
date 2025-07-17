@@ -19,8 +19,7 @@ def get_aboniments(page: int = Query(1, ge=1),
     return web_sv.get_aboniments(
         page=page,
         page_size=page_size,
-        query=query,
-        owner=owner
+        query=query
     )
 
 

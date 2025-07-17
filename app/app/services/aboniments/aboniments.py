@@ -18,13 +18,11 @@ def get_user_purchased_aboniments(db: Session, user: Users):
         .query(Aboniments)
         .join(Aboniments.purchases)
         .join(Aboniments.aboniment_package)
-        .join(VisitationLogs, VisitationLogs.purchase_id == Purchases.id)
         .filter(Purchases.user_id == user.id)
         .filter(
             Purchases.recorded_date + cast(literal("1 day"), Interval) * AbonimentPackage.expiry_days >= func.now()
         )
-        .options(joinedload(Aboniments.purchases)
-                 .joinedload(Purchases.visitation_logs),
+        .options(joinedload(Aboniments.purchases),
                  joinedload(Aboniments.provider),
                  joinedload(Aboniments.aboniment_package),
                  joinedload(Aboniments.workout_time))

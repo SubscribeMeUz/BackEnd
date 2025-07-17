@@ -154,8 +154,10 @@ def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, user: U
         user_id = user.id,
         purchase_id = purchase.id
     )
+    purchase.used_count += 1
     try:
         db.add(new_log)
+        db.add(purchase)
         db.commit()
         db.refresh(new_log)
     except Exception as err:
