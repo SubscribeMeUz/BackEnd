@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.app.schemas.users.users import UserOut
 from app.web.schemas.aboniments.aboniments import AbonimentLessOut
 from app.web.schemas.packages.packages import AbonimentPackageOut
@@ -43,7 +43,7 @@ class ProvidersAllOut(BaseModel):
 
 class PhotosOut(BaseModel):
     id: int
-    photo_url: str
+    path: str = ''
 
 
 class ProviderDetailResponse(ProviderBase):
