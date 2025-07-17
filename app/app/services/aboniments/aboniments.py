@@ -29,6 +29,8 @@ def get_user_purchased_aboniments(db: Session, user: Users):
         .order_by(Purchases.recorded_date.desc())
         .all()
     )
+    for i in resp:
+        setattr(i, 'user_id', user.id)
     return resp
 
 
