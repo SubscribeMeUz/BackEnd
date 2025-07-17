@@ -14,11 +14,13 @@ router = APIRouter(prefix = "/new-aboniments", tags=['New Aboniments'])
 @router.get('/get/all', status_code=200, response_model=web_sc.AbonimentsResponse)
 def get_aboniments(page: int = Query(1, ge=1),
                    page_size: int = Query(20, le=100),
-                   query: str = Query(None)):
+                   query: str = Query(None),
+                   owner=auth()):
     return web_sv.get_aboniments(
         page=page,
         page_size=page_size,
         query=query,
+        owner=owner
     )
 
 

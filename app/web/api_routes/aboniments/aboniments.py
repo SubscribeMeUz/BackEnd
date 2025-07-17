@@ -40,8 +40,8 @@ def get_aboniment(aboniment_id: int, owner=provider_auth()):
 
 
 @router.post('/add', status_code=200)
-def add_aboniment(request: sc.AbonimentPost, _=admin_auth()):
-    return sv.add_aboniment(request=request)
+def add_aboniment(request: sc.AbonimentPost, admin=provider_auth()):
+    return sv.add_aboniment(request=request, admin=admin)
 
 
 @router.put('/change/{aboniment_id}', status_code=200)

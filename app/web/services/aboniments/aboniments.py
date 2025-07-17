@@ -1,4 +1,5 @@
 import math
+import json
 import logging
 import pyqrcode
 from pathlib import Path
@@ -165,7 +166,12 @@ def get_aboniment(db: Session, aboniment_id: int, owner: Users):
     return aboniment
 
 
-def add_aboniment(db: Session, request: sc.AbonimentPost) -> dict:
+def add_aboniment(db: Session, request: sc.AbonimentPost, admin: Users) -> dict:
+    provider = db.query(Providers).filter_by(id=request.provider_id).first()
+    if not provider:
+        raise ValueError("Provider not found!")
+    if not (admin.role == Roles.admin or provider.owner_id == admin.id):
+        raise ValueError("Siz bu providerga aboniment qo'sha olmaysiz!")
     new_aboniment = Aboniments(
         name = request.name,
         price = request.price,
@@ -240,7 +246,7 @@ def generate_qr_code(db: Session, aboniment_id: int = None, provider_id: int = N
             "provider_id": provider_id
         }
         file_path = save_dir / f"provider_{provider_id}.png"
-    qr = pyqrcode.create(str(content))
+    qr = pyqrcode.create(json.dumps(content))
     qr.png(str(file_path), scale=6)
 
     return str(file_path)

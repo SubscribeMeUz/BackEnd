@@ -20,7 +20,7 @@ def add_user(db: Session, request: sc.OTPPhoneVerifyModel, info: sc.OTPPhoneVeri
             phone=request.phone,
             username=username,
             full_name=info.full_name,
-            password='',
+            password=auth_handler.get_password_hash('12345'),
             role=Roles.user
         )
         db.add(user)
