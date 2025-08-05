@@ -17,5 +17,7 @@ def get_abonoment_purchases():
 # return which user comes to use abonoments
 def get_user_abonoment_uses():
     return
-
+# return uses according to time
+def get_uses_with_time():
+    return
 
