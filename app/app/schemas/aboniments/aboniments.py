@@ -86,10 +86,10 @@ class AbonimentsWithPackage(BaseModel):
     def f(cls, aboniment: Aboniments):
         aboniment.plan_name = aboniment.aboniment_package.plan_name
         aboniment.label = aboniment.aboniment_package.label
-        aboniment.title = aboniment.aboniment_package.title
+        aboniment.title = aboniment.name
         aboniment.subtitle = aboniment.aboniment_package.subtitle
         aboniment.price = aboniment.price
-        aboniment.abonoment_title = aboniment.name
+        aboniment.abonoment_title = aboniment.aboniment_package.title
         return aboniment
 
     class Config:
