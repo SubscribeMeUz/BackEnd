@@ -84,7 +84,6 @@ class AbonimentsWithPackage(BaseModel):
 
     @model_validator(mode="before")
     def f(cls, aboniment: Aboniments):
-        print(type(aboniment))
         aboniment.plan_name = aboniment.aboniment_package.plan_name
         aboniment.label = aboniment.aboniment_package.label
         aboniment.title = aboniment.aboniment_package.title
