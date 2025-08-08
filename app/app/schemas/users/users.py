@@ -69,6 +69,7 @@ class OtpPhoneRequest(BaseModel):
 class OTPPhoneRegisterRequest(OtpPhoneRequest):
     username: str = ''
     full_name: str = ''
+    appsignature: str = ''
     
     class Config:
         from_attributes = True        

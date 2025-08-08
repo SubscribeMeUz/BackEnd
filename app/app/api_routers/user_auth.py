@@ -74,7 +74,7 @@ def request_otp(request: sc.OTPPhoneRegisterRequest):
     store_otp(request, code)
     #send_sms(request.phone, code)
     #try:
-    sendOTP(request.phone, code)
+    sendOTP(request.phone, code, request.appsignature)
     return {'status': 'OTP sent'}
     #except Exception as error:
      #   raise HTTPException(status_code=500, detail= str(error))

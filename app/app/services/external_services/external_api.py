@@ -52,10 +52,10 @@ def get_valid_token() -> str:
     return new_token.data.token
 
 
-def sendOTP(phone: str, code: str):
+def sendOTP(phone: str, code: str, app_signature: str):
     try:
         otp_form = {
-            "message": "Subme.uz sayti ga ro‘yxatdan o‘tish uchun  tasdiqlash kodi " + code,
+            "message": "SubMe ilovasiga ro’yxatdan o’tish uchun kod: " + code + " " + app_signature,
             "mobile_phone": phone,
             "callback_url": "",
             "from": "4454"      
