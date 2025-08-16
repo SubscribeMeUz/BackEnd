@@ -7,6 +7,7 @@ from app.models.packages.packages import AbonimentPackage
 from app.models.provider_tabs.provider_tabs import ProviderTabs
 from app.models.workouttimes.workout_times import WorkOutTimes
 from app.models.purchases.purchases import Purchases
+from app.web.schemas.purchases.purchases import PurchasesStatuses as purchase_statuses
 
 
 class AbonimentResponse(BaseModel):
@@ -49,13 +50,13 @@ class MyPurchasedAbonimentResponse(BaseModel):
 
     @model_validator(mode='before')
     def f(cls, aboniment: dict):
-        total_purchases = len([i for i in aboniment.purchases if i.user_id == aboniment.user_id])
+        total_purchases = len([i for i in aboniment.purchases if i.user_id == aboniment.user_id and i.status == purchase_statuses.NEW])
         aboniment.label = aboniment.aboniment_package.label
         aboniment.title = aboniment.aboniment_package.title
         aboniment.subtitle = aboniment.aboniment_package.subtitle
         aboniment.total_count = aboniment.aboniment_package.count * total_purchases
         aboniment.aviable_count = (aboniment.aboniment_package.count * total_purchases
-             - sum([i.used_count for i in aboniment.purchases if i.user_id == aboniment.user_id]))
+             - sum([i.used_count for i in aboniment.purchases if i.user_id == aboniment.user_id and i.status == purchase_statuses.NEW]))
         aboniment.expiry_days = aboniment.aboniment_package.expiry_days
         aboniment.expire_date = (aboniment.purchases[0].recorded_date + timedelta(days=aboniment.expiry_days)).date()
         aboniment.purchased_date = aboniment.purchases[0].recorded_date.date()

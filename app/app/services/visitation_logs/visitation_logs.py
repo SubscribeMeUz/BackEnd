@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
-from sqlalchemy.orm import Session, joinedload, contains_eager
+from sqlalchemy.orm import Session, joinedload, contains_eager, query
+from app.models.purchases import purchases
 from app.models.users.users import Users
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 from app.models.purchases.purchases import Purchases
@@ -42,7 +43,7 @@ def _check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonime
         )
     if not purchase:
         raise ValueError("Sizda ushbu provayderda aktiv aboniment mavjud emas!")
-
+   # if we have purchase it means that we can calculate the info
     package = (
         db
         .query(AbonimentPackage)
@@ -50,8 +51,9 @@ def _check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonime
         .filter(Aboniments.id == purchase.aboniment_id)
         .first()
     )
-    date_now = datetime.now()
-    expire_date = purchase.recorded_date + timedelta(days=package.expiry_days)
+    # from abonoment package we can take info like expire day and others
+    date_now = datetime.now() # get current date 
+    expire_date = purchase.recorded_date + timedelta(days=package.expiry_days)  # take when it is going to expire
     logs = (
         db
         .query(VisitationLogs)
@@ -61,8 +63,8 @@ def _check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonime
     )
     visitation_count = logs.count()
     last_visitation = logs.first()
-    if last_visitation and (last_visitation.recorded_date >= datetime.now() - timedelta(hours=1)):
-        raise ValueError("Bir soat ichida bir nechta joydan foydalanish mumkin emas!")
+    # if last_visitation and (last_visitation.recorded_date >= datetime.now() - timedelta(hours=1)):
+    #     raise ValueError("Bir soat ichida bir nechta joydan foydalanish mumkin emas!")
     if visitation_count >= package.count:
         purchase.status = web_purchases_sc.PurchasesStatuses.USED
         try:
@@ -71,8 +73,8 @@ def _check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonime
         except:
             db.rollback()
         raise ValueError("Abonimentdan foydalanish limiti tugagan!")
-    if expire_date.date() == date_now.date():
-        raise ValueError("Bir kun ichida abonimentdan faqat bir marta foydalanish mumkin!")
+    # if expire_date.date() == date_now.date():
+    #     raise ValueError("Bir kun ichida abonimentdan faqat bir marta foydalanish mumkin!")
     if expire_date < date_now:
         purchase.status = web_purchases_sc.PurchasesStatuses.USED
         try:
@@ -83,6 +85,82 @@ def _check_purchase_is_valid(db: Session, user: Users, provider_id: int, abonime
         raise ValueError("Aboniment uchun foydalanish muddati tugagan!")
     return purchase
 
+def _get_valid_purchase(db: Session, user: Users, provider_id: int, aboniment_id: int):
+        if not provider_id or not aboniment_id:
+            raise ValueError("Provider ID va Abonoment ID berilishi shart!")
+        
+        abonoment = db.query(Aboniments).filter(Aboniments.id == aboniment_id).first()
+        if not abonoment:
+            raise ValueError("Aboniment topilmadi!")
+        if abonoment.provider_id != provider_id:
+            raise ValueError("Aboniment provayderi bilan mos kelmaydi!")
+        # get abonoment package to calculate the info
+        aboniment_pacakage = (
+            db.query(AbonimentPackage)
+            .join(AbonimentPackage.aboniments)
+            .filter(Aboniments.id == aboniment_id)
+            .first()
+        )
+
+        if not aboniment_pacakage:
+            raise ValueError("Aboniment paketi topilmadi!")
+        
+        # check if user has a valid purchase
+        print(user.id, aboniment_id, "tets")
+        query = (
+            db.query(Purchases)
+            .filter(Purchases.status == web_purchases_sc.PurchasesStatuses.NEW)
+            .filter(Purchases.user_id == user.id)
+            .filter(Purchases.aboniment_id == aboniment_id)
+            .order_by(Purchases.recorded_date.asc())
+            .all()
+        )
+        print(len(query), "query count test")
+        if not query:
+            raise ValueError("Sizda ushbu provayderda aktiv aboniment mavjud emas!")
+        
+        user_purchase: Purchases| None = None
+        for purchase in query:
+            if purchase.recorded_date + timedelta(days=aboniment_pacakage.expiry_days) < datetime.now():
+                purchase.status = web_purchases_sc.PurchasesStatuses.USED
+                try:
+                    db.add(purchase)
+                    db.commit()
+                except:
+                    db.rollback()
+                    raise ValueError("Aboniment uchun foydalanish muddati tugagan!")
+                continue
+            if purchase.used_count >= aboniment_pacakage.count:
+                purchase.status = web_purchases_sc.PurchasesStatuses.USED
+                try:
+                    db.add(purchase)
+                    db.commit()
+                except:
+                    db.rollback()
+                    raise ValueError("Abonimentdan foydalanish limiti tugagan!")
+                continue
+
+            user_purchase = purchase
+            break
+        if not user_purchase:
+            raise ValueError("Sizda ushbu provayderda aktiv aboniment mavjud emas!")
+        # if we have purchase it means that we can calculate the info
+        
+                
+        logs = (
+            db
+            .query(VisitationLogs)
+            .filter(VisitationLogs.user_id == user.id,
+                    VisitationLogs.purchase_id == purchase.id)
+            .order_by(VisitationLogs.recorded_date.desc())
+        )
+        last_visitation = logs.first()
+        # if last_visitation and (last_visitation.recorded_date >= datetime.now() - timedelta(hours=1)):
+        #     raise ValueError("Bir soat ichida bir nechta joydan foydalanish mumkin emas!")
+        
+
+        return user_purchase
+    
 
 def get_user_visitation_log(db: Session, log_id: int):
     return _get_user_visitation_log(db=db, log_id=log_id)
@@ -146,16 +224,16 @@ def add_visitation_log(db: Session, request: sc.VisitationLogAddRequest, user: U
     if not provider:
         raise ValueError("Provider not found")
 
-    purchase: Purchases = _check_purchase_is_valid(db=db, user=user,
+    purchase: Purchases = _get_valid_purchase(db=db, user=user,
                                                   provider_id=request.provider_id,
                                                   aboniment_id=request.aboniment_id)
 
-    used_count = db.query(VisitationLogs).filter(VisitationLogs.user_id == user.id).count()
+   # used_count = db.query(VisitationLogs).filter(VisitationLogs.user_id == user.id).count()
     new_log = VisitationLogs(
         user_id = user.id,
         purchase_id = purchase.id
     )
-    purchase.used_count = used_count + 1
+    purchase.used_count = purchase.used_count + 1
     try:
         db.add(new_log)
         db.add(purchase)
@@ -181,3 +259,13 @@ def delete_log(db: Session, log_id: int):
         logger.error(err)
         db.rollback()
         raise err
+
+# code refactoring qilish kerak 
+def mark_as_used(db, purchase, message: str):
+    purchase.status = web_purchases_sc.PurchasesStatuses.USED
+    try:
+        db.add(purchase)
+        db.commit()
+    except:
+        db.rollback()
+        raise ValueError(message)

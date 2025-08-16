@@ -10,6 +10,7 @@ from app.models.users.users import Users
 from app.models.purchases.purchases import Purchases
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 from app.app.services.providers import providers as app_providers
+from app.web.schemas.purchases.purchases import PurchasesStatuses as purchase_statuses
 
 
 def get_user_purchased_aboniments(db: Session, user: Users):
@@ -18,7 +19,7 @@ def get_user_purchased_aboniments(db: Session, user: Users):
         .query(Aboniments)
         .join(Aboniments.purchases)
         .join(Aboniments.aboniment_package)
-        .filter(Purchases.user_id == user.id)
+        .filter(Purchases.user_id == user.id, Purchases.status == purchase_statuses.NEW)
         .filter(
             Purchases.recorded_date + cast(literal("1 day"), Interval) * AbonimentPackage.expiry_days >= func.now()
         )
