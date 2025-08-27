@@ -2,10 +2,13 @@ import logging
 from datetime import date
 from sqlalchemy import Date, cast, func, extract
 from sqlalchemy.orm import Session
+from typing import List
+
 from app.web.schemas.statistics import statistics as sc
 from app.models.users.users import Users
 from app.models.providers.providers import Providers
 from app.models.aboniments.aboniments import Aboniments
+from app.models.packages.packages import AbonimentPackage
 from app.models.purchases.purchases import Purchases
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 
@@ -20,10 +23,8 @@ def get_daily_purchases(
     from_date: date = None,
     to_date: date = None
 ):
-    if not from_date and not to_date:
-        today = date.today()
-        from_date = today
-        to_date = today
+    from_date = date.today() if not from_date else from_date
+    to_date = date.today() if not to_date else to_date
 
     query = (
         db.query(
@@ -76,10 +77,10 @@ def get_active_aboniments(
     from_date: date = None,
     to_date: date = None
 ):
-    if not from_date and not to_date:
-        today = date.today()
-        from_date = today
-        to_date = today
+    from_date = date.today() if not from_date else from_date
+    to_date = date.today() if not to_date else to_date
+
+    
 
     query = (
         db.query(
@@ -107,6 +108,7 @@ def get_active_aboniments(
 
     if provider_id:
         query = query.filter(Providers.id == provider_id)
+    
 
     results = query.all()
 
@@ -140,10 +142,8 @@ def get_user_aboniment_uses(
     from_date: date = None,
     to_date: date = None
 ):
-    if not from_date and not to_date:
-        today = date.today()
-        from_date = today
-        to_date = today
+    from_date = date.today() if not from_date else from_date
+    to_date = date.today() if not to_date else to_date
 
     query = (
         db.query(
@@ -227,12 +227,11 @@ def get_uses_with_time(
     db: Session,
     provider_id: int = None,
     from_date: date = None,
-    to_date: date = None
+    to_date: date = None,
+    interval_hours : int = 1 
 ):
-    if not from_date and not to_date:
-        today = date.today()
-        from_date = today
-        to_date = today
+    from_date = date.today() if not from_date else from_date
+    to_date = date.today() if not to_date else to_date
 
     query = (
         db.query(
@@ -253,11 +252,85 @@ def get_uses_with_time(
         query = query.filter(Providers.id == provider_id)
 
     results = query.all()
-
-    hours_map = {i: 0 for i in range(24)}
+    
+    hours_map = {i: 0 for i in range(24//interval_hours)}
     for row in results:
-        hours_map[int(row.hour)] = row.total_sales
+        hours_map[int(row.hour)//interval_hours] += row.total_sales
 
-    data = [{"hour": hour, "total_sales": count} for hour, count in sorted(hours_map.items())]
+    data = [{"hour": f"{hour * interval_hours}-{(hour+1) * interval_hours}", "total_sales": count} for hour, count in sorted(hours_map.items())]
 
     return data
+
+# get statistics about accepted and rejected requests from admin
+
+# return user list which uses abonoments 
+def get_user_list_by_usetimes(db: Session, user_request: sc.UserAbonimentUseRequest, user: Users)-> List[sc.UserAbonimentUseResponse]:
+
+    query = (db.query(func.date_trunc('second', VisitationLogs.recorded_date).label("use_date"),
+                      Aboniments.id.label("aboniment_id"),
+                      Aboniments.name.label("aboniment_name"),
+                      Users.id.label("user_id"),
+                      Users.full_name,
+                      Users.phone,
+                      Providers.id.label("provider_id"),
+                      Providers.name.label("provider_name"),
+                      ).join(Purchases, Purchases.id == VisitationLogs.purchase_id)
+                      .join(Aboniments, Aboniments.id == Purchases.aboniment_id)
+                      .join(Providers, Providers.id == Aboniments.provider_id)
+                      .join(Users, Users.id == Purchases.user_id)).where(Providers.id == user.id).order_by(cast(VisitationLogs.recorded_date, Date).desc())
+   
+    if user_request.from_date:
+        query = query.filter(cast(VisitationLogs.recorded_date, Date) >= user_request.from_date)
+    if user_request.to_date:
+        query = query.filter(cast(VisitationLogs.recorded_date, Date) <= user_request.to_date)
+    if user_request.provider_id:
+        query = query.filter(Providers.id == user_request.provider_id)
+    if user_request.aboniment_id:
+        query = query.filter(Aboniments.id == user_request.aboniment_id)
+    if user_request.phone:
+        query = query.filter(Users.phone == user_request.phone)
+    if user_request.name:
+        query = query.filter(Users.full_name.ilike(f"%{user_request.name}%"))
+    
+    results = query.all()
+    
+    return [sc.UserAbonimentUseResponse(**row._mapping) for row in results]
+
+# return purchase history as list
+def get_purchase_history(db: Session, purchase_request: sc.PurchaseHistoryRequest, user: Users) -> List[sc.PurchaseHistoryResponse]:
+    print("test")
+    query = (db.query(Purchases.id.label("purchase_id"),
+                        Users.id.label("user_id"),
+                        Users.full_name.label("user_name"),
+                        Users.phone.label("user_phone"),
+                        Providers.id.label("provider_id"),
+                        Providers.name.label("provider_name"),
+                        Aboniments.id.label("aboniment_id"),
+                        Aboniments.name.label("aboniment_name"),
+                        Aboniments.price.label("aboniment_price"),
+                        AbonimentPackage.count.label("total_amount"),
+                        AbonimentPackage.plan_name.label("abonoment_name"),
+
+                       func.date_trunc('second', Purchases.recorded_date).label("purchase_date"),
+                        ).join(Aboniments, Aboniments.id == Purchases.aboniment_id)
+                        .join(Providers, Providers.id == Aboniments.provider_id)
+                        .join(Users, Users.id == Purchases.user_id)
+                        .join(AbonimentPackage, AbonimentPackage.id == Aboniments.aboniment_package_id)
+                        .where(Providers.owner_id == user.id).order_by(cast(Purchases.recorded_date, Date).desc()))
+  
+    if purchase_request.from_date:
+        query = query.filter(cast(Purchases.recorded_date, Date)>= purchase_request.from_date)
+    if purchase_request.to_date:
+        query = query.filter(cast(Purchases.recorded_date, Date) <= purchase_request.to_date)
+    if purchase_request.abonoment_id:
+        query = query.filter(Aboniments.id == purchase_request.abonoment_id)
+    if purchase_request.phone:
+        query = query.filter(Users.phone == purchase_request.phone)
+    if purchase_request.name:
+        query = query.filter(Users.full_name.ilike(f"%{purchase_request.name}%"))
+                        
+                      
+    result = query.all()
+    print(result)
+    return [sc.PurchaseHistoryResponse(**row._mapping) for row in result]
+
