@@ -38,10 +38,12 @@ def get_user_aboniment_uses(from_date: date = Query(None, description="YYYY-MM-D
 @router.get('/get-uses-with-time')
 def get_uses_with_time(from_date: date = Query(None, description="YYYY-MM-DD"),
                         to_date: date = Query(None, description="YYYY-MM-DD"),
+                        query: str = Query(None, description="Search by name"),
                         provider_id: int = None,
-                        interval_hours: sc.LiteralHoursInterval = 1, _=auth()):
+                        abonoment_id: int = None,
+                        interval_hours: sc.LiteralHoursInterval = 1, user =auth()):
     return sv.get_uses_with_time(provider_id=provider_id,
-                                 from_date=from_date, to_date=to_date, interval_hours=int(interval_hours))
+                                 from_date=from_date, to_date=to_date, interval_hours=int(interval_hours), query=query, abonoment_id=abonoment_id, user=user,)
 
 
 @router.post('/get-user-list-by-usetimes', response_model=List[UserAbonimentUseResponse])
@@ -51,3 +53,7 @@ def get_user_list_by_usetimes(user_request: UserAbonimentUseRequest, user=auth()
 @router.post('/get-purchase-history', response_model=List[sc.PurchaseHistoryResponse])
 def get_purchase_history(purchase_request: sc.PurchaseHistoryRequest, user =auth()):
     return sv.get_purchase_history(purchase_request=purchase_request, user=user)
+
+@router.post('/get-all-client-info', response_model= List[sc.ClientInfoResponse])
+def get_all_client_info(client_info_request: sc.ClientInfoRequest, user= auth()):
+    return sv.get_client_info(client_info_request=client_info_request, user=user)

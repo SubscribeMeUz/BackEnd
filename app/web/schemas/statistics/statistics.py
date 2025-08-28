@@ -56,4 +56,22 @@ class PurchaseHistoryResponse(BaseModel):
     total_amount: int
     #payment_method: str
 
+
+class ClientInfoRequest(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+    phone_number: str | None = None
+    min_count: int | None = None
+    max_count: int | None = None
+    from_date: datetime | None = None
+    to_date: datetime | None = None
+
+class ClientInfoResponse(BaseModel):
+    full_name: str
+    user_id: int
+    phone_number: str
+    purchase_count: int
+    last_purchase_date: datetime
+
+
 LiteralHoursInterval = Literal["1", "2", "3", "4", "6", "12", "24"]

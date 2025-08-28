@@ -11,6 +11,7 @@ from app.models.aboniments.aboniments import Aboniments
 from app.models.packages.packages import AbonimentPackage
 from app.models.purchases.purchases import Purchases
 from app.models.visitation_logs.visitation_logs import VisitationLogs
+from app.models.provider_tabs.provider_tabs import ProviderTabs
 
 
 logger= logging.getLogger(__name__)
@@ -221,27 +222,33 @@ def get_user_aboniment_uses(
 
     return formatted
 
-
+# bug fix
 # return uses according to time
 def get_uses_with_time(
     db: Session,
     provider_id: int = None,
     from_date: date = None,
     to_date: date = None,
-    interval_hours : int = 1 
+    interval_hours : int = 1,
+    query: str = None,
+    abonoment_id: int = None,
+    user: Users = None
 ):
     from_date = date.today() if not from_date else from_date
     to_date = date.today() if not to_date else to_date
 
-    query = (
+    query_ = (
         db.query(
             extract('hour', Purchases.recorded_date).label("hour"),
             func.count(Purchases.id).label("total_sales")
         )
         .join(Aboniments, Aboniments.id == Purchases.aboniment_id)
+        .join(Aboniments.aboniment_package)
+        .join(Aboniments.provider_tab)
         .join(Providers, Providers.id == Aboniments.provider_id)
         .filter(Purchases.is_deleted == False)
         .filter(Aboniments.is_deleted == False)
+        .filter(Providers.owner_id == user.id)
         .filter(cast(Purchases.recorded_date, Date) >= from_date)
         .filter(cast(Purchases.recorded_date, Date) <= to_date)
         .group_by(extract('hour', Purchases.recorded_date))
@@ -249,9 +256,20 @@ def get_uses_with_time(
     )
 
     if provider_id:
-        query = query.filter(Providers.id == provider_id)
+        query_ = query_.filter(Providers.id == provider_id)
+    if abonoment_id:
+        query_ = query_.filter(Aboniments.id == abonoment_id)
+    if query:
+        query_ = query_.filter(Aboniments.name.ilike(f"%{query}%") |
+                               Users.full_name.ilike(f"%{query}%") |
+                               Users.phone.ilike(f"%{query}%") |
+                               AbonimentPackage.title.ilike(f"%{query}%") |
+                               AbonimentPackage.plan_name.ilike(f"%{query}%") |
+                               ProviderTabs.label.ilike(f"%{query}%") |
+                               ProviderTabs.value.ilike(f"%{query}%"))
 
-    results = query.all()
+
+    results = query_.all()
     
     hours_map = {i: 0 for i in range(24//interval_hours)}
     for row in results:
@@ -277,7 +295,7 @@ def get_user_list_by_usetimes(db: Session, user_request: sc.UserAbonimentUseRequ
                       ).join(Purchases, Purchases.id == VisitationLogs.purchase_id)
                       .join(Aboniments, Aboniments.id == Purchases.aboniment_id)
                       .join(Providers, Providers.id == Aboniments.provider_id)
-                      .join(Users, Users.id == Purchases.user_id)).where(Providers.id == user.id).order_by(cast(VisitationLogs.recorded_date, Date).desc())
+                      .join(Users, Users.id == Purchases.user_id)).where(Providers.owner_id == user.id).order_by(cast(VisitationLogs.recorded_date, Date).desc())
    
     if user_request.from_date:
         query = query.filter(cast(VisitationLogs.recorded_date, Date) >= user_request.from_date)
@@ -298,7 +316,7 @@ def get_user_list_by_usetimes(db: Session, user_request: sc.UserAbonimentUseRequ
 
 # return purchase history as list
 def get_purchase_history(db: Session, purchase_request: sc.PurchaseHistoryRequest, user: Users) -> List[sc.PurchaseHistoryResponse]:
-    print("test")
+
     query = (db.query(Purchases.id.label("purchase_id"),
                         Users.id.label("user_id"),
                         Users.full_name.label("user_name"),
@@ -331,6 +349,44 @@ def get_purchase_history(db: Session, purchase_request: sc.PurchaseHistoryReques
                         
                       
     result = query.all()
-    print(result)
     return [sc.PurchaseHistoryResponse(**row._mapping) for row in result]
 
+# get full client info 
+def get_client_info(
+    db: Session, 
+    client_info_request: sc.ClientInfoRequest, 
+    user: Users
+) -> List[sc.ClientInfoResponse]:
+    query = (
+        db.query(
+            Purchases.user_id.label("user_id"),
+            Users.full_name.label("full_name"),
+            Users.phone.label("phone_number"),
+            func.count(Purchases.id).label("purchase_count"),
+            func.max(Purchases.recorded_date).label("last_purchase_date")
+        )
+        .join(Purchases.aboniment)
+        .join(Aboniments.provider)
+        .join(Users, Purchases.user_id == Users.id)
+        .where(Providers.owner_id == user.id)
+        .group_by(Purchases.user_id,
+                  Users.full_name,
+                  Users.phone)
+    )
+    
+    if client_info_request.name:
+        query = query.filter(Users.full_name.ilike(f"%{client_info_request.name}%"))
+    if client_info_request.phone:
+        query = query.filter(Users.phone == client_info_request.phone)
+    if client_info_request.min_count:
+        query = query.having(func.count(Purchases.id) >= client_info_request.min_count)
+    if client_info_request.max_count:
+        query = query.having(func.count(Purchases.id) <= client_info_request.max_count)
+    if client_info_request.from_date:
+        query = query.having(func.max(Purchases.recorded_date) >= client_info_request.from_date)
+    if client_info_request.to_date:
+        query = query.having(func.max(Purchases.recorded_date) <= client_info_request.to_date)
+    
+    results = query.all() or []  # ensure results is always a list
+
+    return [sc.ClientInfoResponse(**row._mapping) for row in results]
