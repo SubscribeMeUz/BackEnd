@@ -43,8 +43,9 @@ logger.addHandler(handler)
 logger.info("Starting fit app")
 
 origins = [
-    "https://admin.subme.uz",
-    "http://localhost:3000",
+    "*"
+    # "https://admin.subme.uz",
+    # "http://localhost:3000",
 ]
 
 app.add_middleware(RewriteStaticPathsMiddleware)
