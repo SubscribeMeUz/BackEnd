@@ -52,7 +52,7 @@ class PurchaseHistoryResponse(BaseModel):
     aboniment_id: int
     aboniment_name: str
     purchase_date: datetime
-    abonoment_name: str
+    abonoment_package_name: str
     total_amount: int
     #payment_method: str
 

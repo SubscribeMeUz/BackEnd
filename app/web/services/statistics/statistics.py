@@ -306,7 +306,7 @@ def get_user_list_by_usetimes(db: Session, user_request: sc.UserAbonimentUseRequ
     if user_request.aboniment_id:
         query = query.filter(Aboniments.id == user_request.aboniment_id)
     if user_request.phone:
-        query = query.filter(Users.phone == user_request.phone)
+        query = query.filter(Users.phone.ilike(f"%{user_request.phone}%"))
     if user_request.name:
         query = query.filter(Users.full_name.ilike(f"%{user_request.name}%"))
     
@@ -327,7 +327,7 @@ def get_purchase_history(db: Session, purchase_request: sc.PurchaseHistoryReques
                         Aboniments.name.label("aboniment_name"),
                         Aboniments.price.label("aboniment_price"),
                         AbonimentPackage.count.label("total_amount"),
-                        AbonimentPackage.plan_name.label("abonoment_name"),
+                        AbonimentPackage.plan_name.label("abonoment_package_name"),
 
                        func.date_trunc('second', Purchases.recorded_date).label("purchase_date"),
                         ).join(Aboniments, Aboniments.id == Purchases.aboniment_id)
@@ -343,7 +343,7 @@ def get_purchase_history(db: Session, purchase_request: sc.PurchaseHistoryReques
     if purchase_request.abonoment_id:
         query = query.filter(Aboniments.id == purchase_request.abonoment_id)
     if purchase_request.phone:
-        query = query.filter(Users.phone == purchase_request.phone)
+        query = query.filter(Users.phone.ilike(f"%{purchase_request.phone}%"))
     if purchase_request.name:
         query = query.filter(Users.full_name.ilike(f"%{purchase_request.name}%"))
                         
@@ -377,7 +377,7 @@ def get_client_info(
     if client_info_request.name:
         query = query.filter(Users.full_name.ilike(f"%{client_info_request.name}%"))
     if client_info_request.phone:
-        query = query.filter(Users.phone == client_info_request.phone)
+        query = query.filter(Users.phone.ilike(f"%{client_info_request.phone}%"))
     if client_info_request.min_count:
         query = query.having(func.count(Purchases.id) >= client_info_request.min_count)
     if client_info_request.max_count:
