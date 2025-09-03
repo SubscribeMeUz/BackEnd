@@ -73,5 +73,8 @@ class ClientInfoResponse(BaseModel):
     purchase_count: int
     last_purchase_date: datetime
 
+class ClientAcceptenceRejectionResponse(BaseModel):
+    rejected: int
+    accepted: int 
 
 LiteralHoursInterval = Literal["1", "2", "3", "4", "6", "12", "24"]

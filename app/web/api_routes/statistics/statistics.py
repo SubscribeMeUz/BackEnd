@@ -57,3 +57,7 @@ def get_purchase_history(purchase_request: sc.PurchaseHistoryRequest, user =auth
 @router.post('/get-all-client-info', response_model= List[sc.ClientInfoResponse])
 def get_all_client_info(client_info_request: sc.ClientInfoRequest, user= auth()):
     return sv.get_client_info(client_info_request=client_info_request, user=user)
+
+@router.post('/get-rejection-acception-count')
+def get_rejection_acception_count():
+    return ""
