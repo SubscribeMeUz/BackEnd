@@ -75,6 +75,8 @@ class ClientInfoResponse(BaseModel):
 
 class ClientAcceptenceRejectionResponse(BaseModel):
     rejected: int
-    accepted: int 
+    accepted: int
+    waiting: int
+
 
 LiteralHoursInterval = Literal["1", "2", "3", "4", "6", "12", "24"]

@@ -58,6 +58,8 @@ def get_purchase_history(purchase_request: sc.PurchaseHistoryRequest, user =auth
 def get_all_client_info(client_info_request: sc.ClientInfoRequest, user= auth()):
     return sv.get_client_info(client_info_request=client_info_request, user=user)
 
-@router.post('/get-rejection-acception-count')
-def get_rejection_acception_count():
-    return ""
+@router.get('/get-rejection-acception-count')
+def get_rejection_acception_count(from_date: date = Query(None, description="YYYY-MM-DD"),
+                                  to_date: date = Query(None, description="YYYY-MM-DD"),
+                                  user = auth()):
+    return sv.get_acceptance_rejection_list(from_date= from_date, to_date= to_date, user= user)

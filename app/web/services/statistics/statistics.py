@@ -10,6 +10,7 @@ from app.models.providers.providers import Providers
 from app.models.aboniments.aboniments import Aboniments
 from app.models.packages.packages import AbonimentPackage
 from app.models.purchases.purchases import Purchases
+from app.models.purchases.purchasing_requests import PurchasingRequests
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 from app.models.provider_tabs.provider_tabs import ProviderTabs
 
@@ -76,13 +77,9 @@ def get_active_aboniments(
     db: Session,
     provider_id: int = None,
     from_date: date = None,
-    to_date: date = None
+    to_date: date = None,
+    user : Users = None
 ):
-    from_date = date.today() if not from_date else from_date
-    to_date = date.today() if not to_date else to_date
-
-    
-
     query = (
         db.query(
             Providers.id.label("provider_id"),
@@ -96,8 +93,6 @@ def get_active_aboniments(
         .filter(Purchases.is_deleted == False)
         .filter(Aboniments.is_deleted == False)
         .filter(Purchases.used_count != 0)
-        .filter(cast(Purchases.recorded_date, Date) >= from_date)
-        .filter(cast(Purchases.recorded_date, Date) <= to_date)
         .group_by(
             Providers.id,
             Providers.name,
@@ -109,6 +104,10 @@ def get_active_aboniments(
 
     if provider_id:
         query = query.filter(Providers.id == provider_id)
+    if from_date: 
+        query = query.having(func.max(Purchases.recorded_date)>= from_date)
+    if to_date:
+        query = query.having(func.max(Purchases.recorded_date)<= to_date)
     
 
     results = query.all()
@@ -390,3 +389,27 @@ def get_client_info(
     results = query.all() or []  # ensure results is always a list
 
     return [sc.ClientInfoResponse(**row._mapping) for row in results]
+
+def get_acceptance_rejection_list(db : Session,
+                                  from_date: date,
+                                  to_date: date,
+                                  user: Users):
+    result = (
+        db.query(
+        PurchasingRequests.status,
+        func.count(PurchasingRequests.id).label("count"))
+        .join(PurchasingRequests.aboniment)
+        .join(Aboniments.provider)
+        .filter(Providers.owner_id == user.id)
+        .group_by(PurchasingRequests.status)
+        )
+    if from_date: 
+        result = result.having(func.max(PurchasingRequests.recorded_date) > from_date)
+    if to_date:
+        result = result.having(func.max(PurchasingRequests.recorded_date) < to_date)
+
+    result = result.all()
+    print(result)
+    status_count = {status: count for status, count in result}
+    
+    return status_count
