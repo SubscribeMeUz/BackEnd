@@ -21,7 +21,7 @@ def get_daily_purchases(from_date: datetime = Query(None, description="YYYY-MM-D
 
 @router.get('/get-active-aboniments')
 def get_active_aboniments(from_date: date = Query(None, description="YYYY-MM-DD"),
-                        to_date: date = Query(None, description="YYYY-MM-DD", le= date.today()),
+                        to_date: date = Query(None, description="YYYY-MM-DD"),
                         provider_id: int = None, _=auth()):
     return sv.get_active_aboniments(provider_id=provider_id,
                                   from_date=from_date, to_date=to_date)
