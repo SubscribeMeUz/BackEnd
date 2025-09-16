@@ -1,0 +1,18 @@
+import typing
+from app.db.database import Base
+from sqlalchemy import String, Integer, Column, DateTime, ForeignKey, JSON, Boolean
+from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.sql import func
+
+
+if typing.TYPE_CHECKING:
+    from app.models.providers.providers import Providers
+
+
+class TgSettings(Base):
+    id = Column(Integer, primary_key= True)
+    chanel_name = Column(String)
+    is_active = Column(bool) 
+
+    provider_id = Column(Integer, ForeignKey('providers.id'))
+    provider: Mapped["Providers"] = relationship("Providers", back_populates='tgsettings', foreign_keys=[provider_id])
