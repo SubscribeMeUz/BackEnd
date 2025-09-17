@@ -5,9 +5,6 @@ from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.sql import func
 
 
-if typing.TYPE_CHECKING:
-    from app.models.providers.providers import Providers
-
 
 class TgSettings(Base):
     id = Column(Integer, primary_key= True)
@@ -15,4 +12,4 @@ class TgSettings(Base):
     is_active = Column(bool) 
 
     provider_id = Column(Integer, ForeignKey('providers.id'))
-    provider: Mapped["Providers"] = relationship("Providers", back_populates='tgsettings', foreign_keys=[provider_id])
+    provider = relationship("Providers", back_populates='tgsettings', foreign_keys=[provider_id])
