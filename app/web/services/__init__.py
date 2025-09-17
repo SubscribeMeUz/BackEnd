@@ -8,6 +8,7 @@ from app.web.services.user_auth import login
 from app.web.services.users import users
 from app.web.services.workouttimes import workout_times
 from app.web.services.statistics import statistics
+from app.web.services.telegram import tg_service
 from app.helpers.routes_helper import wrap_modules
 
 
@@ -21,7 +22,8 @@ MODULES = [
     login,
     users,
     workout_times,
-    statistics
+    statistics,
+    tg_service
 ]
 
 

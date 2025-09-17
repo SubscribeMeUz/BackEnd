@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 class TgSettings(Base):
     __tablename__ = 'tgsettings'
     id = Column(Integer, primary_key= True)
-    chanel_name = Column(String)
+    chanel_name = Column(String, unique= True)
     is_active = Column(Boolean, default=True) 
 
     provider_id = Column(Integer, ForeignKey('providers.id'))

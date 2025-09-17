@@ -18,6 +18,7 @@ from app.web.api_routes.workouttimes import workput_times
 from app.web.api_routes.packages import packages
 from app.web.api_routes.provider_tabs import provider_tabs
 from app.web.api_routes.statistics import statistics
+from app.web.api_routes.telegram import telegram
 
 from app.app.api_routers.users import user
 from app.app.api_routers.aboniments import aboniments as app_aboniments
@@ -75,6 +76,7 @@ app.include_router(purchases.router)
 app.include_router(purchasing_requests.router)
 app.include_router(statistics.router)
 app.include_router(create_tables.router)
+app.include_router(telegram.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/images", StaticFiles(directory="app/static/images"), name="images")
