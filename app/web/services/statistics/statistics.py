@@ -140,7 +140,8 @@ def get_user_aboniment_uses(
     db: Session,
     provider_id: int = None,
     from_date: date = None,
-    to_date: date = None
+    to_date: date = None,
+    user: Users = None
 ):
     from_date = date.today() if not from_date else from_date
     to_date = date.today() if not to_date else to_date
@@ -161,6 +162,7 @@ def get_user_aboniment_uses(
         .join(Users, Users.id == Purchases.user_id)
         .filter(Purchases.is_deleted == False)
         .filter(Aboniments.is_deleted == False)
+        .filter(Providers.owner_id == user.id)
         .filter(Users.is_deleted == False)
         .filter(cast(Purchases.recorded_date, Date) >= from_date)
         .filter(cast(Purchases.recorded_date, Date) <= to_date)

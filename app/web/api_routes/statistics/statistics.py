@@ -30,9 +30,9 @@ def get_active_aboniments(from_date: date = Query(None, description="YYYY-MM-DD"
 @router.get('/get-user-aboniment-uses')
 def get_user_aboniment_uses(from_date: date = Query(None, description="YYYY-MM-DD"),
                         to_date: date = Query(None, description="YYYY-MM-DD"),
-                        provider_id: int = None, _=auth()):
+                        provider_id: int = None, user=auth()):
     return sv.get_user_aboniment_uses(provider_id=provider_id,
-                                      from_date=from_date, to_date=to_date)
+                                      from_date=from_date, to_date=to_date, user=user)
 
 
 @router.get('/get-uses-with-time')
