@@ -11,6 +11,7 @@ from app.models.provider_tabs.provider_tabs import ProviderTabs
 from app.models.visitation_logs.visitation_logs import VisitationLogs
 from app.models.purchases.purchasing_requests import PurchasingRequests
 from app.models.photos.photos import Photos
+from app.models.telegram.tg_models import TgSettings
 
 
 def create_table():
