@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from fastapi import APIRouter, UploadFile, File, Form, Query
 from app.web.schemas.providers import providers as sc
 from app.web.services.providers import providers as sv
@@ -94,3 +95,11 @@ def post_api(provider_id: int, file: UploadFile, _=provider_auth()):
 @router.delete('/delete-photo/{photo_id}', status_code=200)
 def delete_api(photo_id: int, _=provider_auth()):
     return sv.delete_photo(photo_id=photo_id)
+
+@router.get('/search-by-name', status_code=200, response_model=sc.ListProviderOut)
+def get_provider_by_name(provider_name: Optional[str] = Query(None)):
+    return sv.get_provider_by_name(provider_name=provider_name)
+
+@router.get('/new-providers', status_code=200, response_model=sc.ListProviderOut)
+def get_new_providers(_=auth()):
+    return sv.get_new_providers()

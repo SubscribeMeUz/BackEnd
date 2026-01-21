@@ -37,3 +37,29 @@ def get_user_requests(db: Session, user: Users):
         .all()
     )
     return resp
+
+def get_new_purchasing_requests(db: Session, user: Users):
+    resp = (
+        db
+        .query(PurchasingRequests)
+        .filter_by(is_deleted=False, purchase_id=None)
+        .options(joinedload(PurchasingRequests.aboniment)
+                 .joinedload(Aboniments.aboniment_package),
+                 joinedload(PurchasingRequests.user))
+        .order_by(PurchasingRequests.id.desc())
+        .all()
+    )
+    return resp
+
+def get_all_purchasing_requests(db: Session, user: Users):
+    resp = (
+        db
+        .query(PurchasingRequests)
+        .filter_by(is_deleted=False)
+        .options(joinedload(PurchasingRequests.aboniment)
+                 .joinedload(Aboniments.aboniment_package),
+                 joinedload(PurchasingRequests.user))
+        .order_by(PurchasingRequests.id.desc())
+        .all()
+    )
+    return resp

@@ -2,6 +2,7 @@ import math
 import uuid
 import shutil
 import logging
+from datetime import datetime, timedelta
 from fastapi import UploadFile
 from typing import List
 from sqlalchemy.orm import Session, joinedload, Query
@@ -27,6 +28,27 @@ def get_all_providers(db: Session, owner: Users):
 
     return resp
 
+def get_provider_by_name(db: Session, provider_name: str) -> List[Providers]:
+    resp = db.query(Providers).options(joinedload(Providers.owner))
+    
+    if provider_name:
+        resp = resp.filter(Providers.name.ilike(f"%{provider_name}%"))
+    
+    resp = resp.all()
+    return resp
+
+def get_new_providers(db: Session) -> List[Providers]:
+    two_weeks_ago = datetime.utcnow() - timedelta(weeks=2)
+    resp = (
+        db
+        .query(Providers)
+        .options(joinedload(Providers.owner))
+        .filter(Providers.registred_date >= two_weeks_ago)
+        .order_by(Providers.registred_date.desc())
+        .limit(10)
+        .all()
+    )
+    return resp
 
 def get_all_providers_with_filters(
         db: Session,
