@@ -68,6 +68,7 @@ def edit_provider(provider_id: int,
                   location_latt: str = Form(None),
                   location_long: str = Form(None),
                   about_description: str = Form(None),
+                  tool_ids: str = Form(None),
                   logo: UploadFile = File(None),
                   owner_id: int = Form(None),
                   _=provider_auth()):
@@ -77,6 +78,7 @@ def edit_provider(provider_id: int,
                             location_latt=location_latt,
                             location_long=location_long,
                             about_description=about_description,
+                            tool_ids=tool_ids,
                             logo_path=logo_path,
                             owner_id=owner_id)
 

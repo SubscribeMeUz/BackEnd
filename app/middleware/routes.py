@@ -6,7 +6,8 @@ import json
 
 
 PATHS = [
-    'images/'
+    'images/',
+    'tools/',
 ]
 
 

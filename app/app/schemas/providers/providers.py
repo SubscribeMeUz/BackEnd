@@ -1,5 +1,10 @@
+import json
 from pydantic import BaseModel, model_validator, field_serializer
 from typing import Any, Optional, List
+from app.app.services.tools.tools import TOOLS
+
+
+TOOLS_BY_ID = {t["id"]: t for t in TOOLS}
 
 
 class ProvidersLessResponse(BaseModel):
@@ -44,7 +49,7 @@ class ProviderDetailResponse(ProvidersLessResponse):
     location_name: Optional[str] = ''
     discounts: List
     packages: list
-    necessary_tools: Optional[str]
+    tools: List[dict] = []
     about_description: Optional[str]
     photos: List[PhotosOut]
 
@@ -52,6 +57,11 @@ class ProviderDetailResponse(ProvidersLessResponse):
     def f(cls, data: Any):
         data.discounts = sorted([i.discount for i in data.aboniment_packages])
         data.packages = sorted([i.count for i in data.aboniment_packages if i.discount != 100])
+        try:
+            tool_ids = json.loads(data.necessary_tools or '[]')
+            data.tools = [TOOLS_BY_ID[i] for i in tool_ids if i in TOOLS_BY_ID]
+        except Exception:
+            data.tools = []
         return data
 
     class Config:

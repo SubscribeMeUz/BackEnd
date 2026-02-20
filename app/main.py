@@ -25,6 +25,7 @@ from app.app.api_routers.aboniments import aboniments as app_aboniments
 from app.app.api_routers.providers import providers as app_providers
 from app.app.api_routers.visitation_logs import visitation_logs as app_visitation_logs
 from app.app.api_routers.purchases import purchasing_requests as app_purchasing_requests
+from app.app.api_routers.tools import tools as app_tools
 
 app = FastAPI()
 
@@ -64,6 +65,7 @@ app.include_router(app_aboniments.router)
 app.include_router(app_providers.router)
 app.include_router(app_visitation_logs.router)
 app.include_router(app_purchasing_requests.router)
+app.include_router(app_tools.router)
 
 app.include_router(web_auth.router)
 app.include_router(users.router)
@@ -81,3 +83,4 @@ app.include_router(telegram.router)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/images", StaticFiles(directory="app/static/images"), name="images")
 app.mount("/qr-code", StaticFiles(directory="app/static/qr_codes"), name="qr_codes")
+app.mount("/tools", StaticFiles(directory="app/static/tools"), name="tools")

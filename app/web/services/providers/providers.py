@@ -187,6 +187,7 @@ def edit_provider(db: Session,
                   location_latt: str,
                   location_long: str,
                   about_description: str,
+                  tool_ids: str,
                   logo_path: str,
                   owner_id: int):
     provider: Providers = db.query(Providers).options(
@@ -202,6 +203,8 @@ def edit_provider(db: Session,
         provider.about_description = about_description
     if owner_id:
         provider.owner_id = owner_id
+    if tool_ids is not None:
+        provider.necessary_tools = tool_ids
     
     db.add(provider)
     try:

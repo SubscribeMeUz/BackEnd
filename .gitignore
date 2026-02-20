@@ -5,7 +5,6 @@ alembic/
 venv*/
 logs/
 *.log
-app/static/
 app/test*
 test*
 __pycache__/
@@ -15,3 +14,5 @@ __pycache__/
 *.pyc
 .mypy_cache/
 .pytest_cache/
+.idea/
+.vscode/settings.json
