@@ -32,7 +32,9 @@ def get_user_requests(db: Session, user: Users):
         .filter_by(user_id=user.id,
                    is_deleted=False)
         .options(joinedload(PurchasingRequests.aboniment)
-                 .joinedload(Aboniments.aboniment_package))
+                 .joinedload(Aboniments.aboniment_package),
+                 joinedload(PurchasingRequests.aboniment)
+                 .joinedload(Aboniments.provider))
         .order_by(PurchasingRequests.id.desc())
         .all()
     )

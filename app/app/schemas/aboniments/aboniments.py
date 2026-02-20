@@ -82,6 +82,7 @@ class AbonimentsWithPackage(BaseModel):
     subtitle: str
     price: int
     abonoment_title: str
+    provider: Optional[MyAbonimentProviderOut] = None
 
     @model_validator(mode="before")
     def f(cls, aboniment: Aboniments):
