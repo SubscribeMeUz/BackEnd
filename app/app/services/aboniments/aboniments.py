@@ -42,6 +42,8 @@ def get_provider_aboniments(db: Session, provider_id: int) -> Providers:
         .filter(Providers.id == provider_id)
         .options(joinedload(Providers.aboniments)
                  .joinedload(Aboniments.aboniment_package),
+                 joinedload(Providers.aboniments)
+                 .joinedload(Aboniments.provider),
                  joinedload(Providers.aboniment_packages),
                  joinedload(Providers.workout_times),
                  joinedload(Providers.provider_tabs),
