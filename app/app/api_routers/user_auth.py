@@ -82,6 +82,8 @@ def request_otp(request: sc.OTPPhoneRegisterRequest):
 
 @router.post('/auth/verify-otp')
 def verify_otp_handler(request: sc.AuthVerifyOTPRequest):
+    if request.code == '98989' :
+        return sv.add_user(request=request, info=True) # bu test uchun maxsus kod, uni ishlab chiqarish muhitida olib tashlash kerak
     verify = verify_otp(request.phone, request.code)
     if not verify:
         raise HTTPException(400, {'detail': 'Noto‘g‘ri yoki eskirgan kod'})
