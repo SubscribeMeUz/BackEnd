@@ -50,7 +50,7 @@ def store_otp(request: sc.OTPPhoneRegisterRequest, code: str):
                            .model_dump(mode='json'))
 
 
-def verify_otp(phone: str, code: str) -> bool:
+def verify_otp(phone: str, code: str):
     raw_data = redis_storage.hgetall(phone)
     #data = {k.decode(): v.decode() for k, v in raw_data.items()}
     #info = sc.OTPPhoneVerifyModel(**data)

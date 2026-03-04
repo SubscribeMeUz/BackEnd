@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Body
 from app.app.services.user_auth.login import (login_with_otp,
                                           generate_otp, store_otp,
@@ -82,8 +83,9 @@ def request_otp(request: sc.OTPPhoneRegisterRequest):
 
 @router.post('/auth/verify-otp')
 def verify_otp_handler(request: sc.AuthVerifyOTPRequest):
-    if request.code == '98989' :
-        return sv.add_user(request=request, info=True) # bu test uchun maxsus kod, uni ishlab chiqarish muhitida olib tashlash kerak
+    if request.code == '98989':
+        info = sc.OTPPhoneVerifyModel(phone=request.phone, code=request.code, expires=datetime.now(timezone.utc) + timedelta(minutes=5))
+        return sv.add_user(request=request, info=info)  # bu test uchun maxsus kod, uni ishlab chiqarish muhitida olib tashlash kerak
     verify = verify_otp(request.phone, request.code)
     if not verify:
         raise HTTPException(400, {'detail': 'Noto‘g‘ri yoki eskirgan kod'})
