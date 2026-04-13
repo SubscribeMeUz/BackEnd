@@ -13,6 +13,8 @@ class ProvidersLessResponse(BaseModel):
     logo_path: str = ''
     name: str = ''
     title: str = ''
+    location_latt: str
+    location_long: str
 
     @field_serializer('logo')
     def fpv_logo_url(self, v):
