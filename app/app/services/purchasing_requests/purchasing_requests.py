@@ -27,6 +27,14 @@ def add_purchasing_request(db: Session, request: sc.PurchasingRequestAdd, user: 
     if existing_request:
         raise ValueError("You have already requested this aboniment")
 
+    if not user.department or not user.department.strip():
+        if request.department and request.department.strip():
+            user.department = request.department.strip()
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        return {"department": "is mepty"}
+
     # check active purchase for same aboniment
     now = datetime.now()
     active_purchases = (

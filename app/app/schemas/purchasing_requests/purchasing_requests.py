@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Literal, List
+from typing import Literal, List, Optional
 from app.app.schemas.aboniments import aboniments as ab_sc
 
 
@@ -14,6 +14,7 @@ class PurchasingRequestsStatus:
 
 class PurchasingRequestAdd(BaseModel):
     aboniment_id: int
+    department: Optional[str] = None
 
 
 class UserRequests(BaseModel):

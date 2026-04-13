@@ -92,6 +92,8 @@ def change_user(db: Session, user_id: int, request: sc.UserChangeRequest):
         user.full_name = request.full_name
     if request.role:
         user.role = request.role
+    if request.department is not None:
+        user.department = request.department
     
     db.add(user)
     try:
@@ -117,6 +119,8 @@ def user_self_change(db: Session, user: Users, request: sc.UserSelfChangeRequest
         user.password = auth_handler.get_password_hash(request.new_password)
     if request.full_name:
         user.full_name = request.full_name
+    if request.department is not None:
+        user.department = request.department
 
     db.add(user)
     try:

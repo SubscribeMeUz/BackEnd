@@ -12,6 +12,7 @@ class Users(Base):
     password = Column(String(255), unique=False)
     full_name = Column(String(255), unique=False)
     phone = Column(String(255), unique=True)
+    department = Column(String(255), server_default='')
     
     role = Column(String(255), server_default=Roles.user)
 

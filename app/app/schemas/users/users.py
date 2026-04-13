@@ -118,6 +118,7 @@ class UserChangeRequest(BaseModel):
     phone: Optional[str] = None
     full_name: Optional[str] = None
     role: Optional[str] = None
+    department: Optional[str] = None
 
 
 class UserSelfChangeRequest(BaseModel):
@@ -126,6 +127,7 @@ class UserSelfChangeRequest(BaseModel):
     new_password: Optional[str] = None
     phone: Optional[str] = None
     full_name: Optional[str] = None
+    department: Optional[str] = None
 
 
 class UserOut(BaseModel):
@@ -134,6 +136,7 @@ class UserOut(BaseModel):
     phone: str
     full_name: str
     role: str
+    department: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -147,6 +150,7 @@ class UserLessOut(BaseModel):
     username: str
     phone: str
     full_name: str
+    department: Optional[str] = None
 
     class Config:
         from_attributes = True
