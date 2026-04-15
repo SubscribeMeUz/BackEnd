@@ -111,6 +111,8 @@ def get_new_purchasing_requests(db: Session, user: Users):
         .filter_by(is_deleted=False, purchase_id=None)
         .options(joinedload(PurchasingRequests.aboniment)
                  .joinedload(Aboniments.aboniment_package),
+                 joinedload(PurchasingRequests.aboniment)
+                 .joinedload(Aboniments.provider),
                  joinedload(PurchasingRequests.user))
         .order_by(PurchasingRequests.id.desc())
         .all()
@@ -124,6 +126,8 @@ def get_all_purchasing_requests(db: Session, user: Users):
         .filter_by(is_deleted=False)
         .options(joinedload(PurchasingRequests.aboniment)
                  .joinedload(Aboniments.aboniment_package),
+                 joinedload(PurchasingRequests.aboniment)
+                 .joinedload(Aboniments.provider),
                  joinedload(PurchasingRequests.user))
         .order_by(PurchasingRequests.id.desc())
         .all()
