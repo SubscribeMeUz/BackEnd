@@ -134,7 +134,7 @@ class UserOut(BaseModel):
     id: int
     username: str
     phone: str
-    full_name: str
+    full_name: Optional[str] = None
     role: str
     department: Optional[str] = None
 
@@ -149,7 +149,7 @@ class UserLessOut(BaseModel):
     id: int
     username: str
     phone: str
-    full_name: str
+    full_name: Optional[str] = None
     department: Optional[str] = None
 
     class Config:

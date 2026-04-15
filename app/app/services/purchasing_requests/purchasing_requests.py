@@ -108,7 +108,9 @@ def get_new_purchasing_requests(db: Session, user: Users):
     resp = (
         db
         .query(PurchasingRequests)
-        .filter_by(is_deleted=False, purchase_id=None)
+        .filter(PurchasingRequests.is_deleted == False,
+                PurchasingRequests.purchase_id == None,
+                PurchasingRequests.status == sc.PurchasingRequestsStatus.NEW)
         .options(joinedload(PurchasingRequests.aboniment)
                  .joinedload(Aboniments.aboniment_package),
                  joinedload(PurchasingRequests.aboniment)
