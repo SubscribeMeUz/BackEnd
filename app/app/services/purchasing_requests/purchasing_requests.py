@@ -14,7 +14,10 @@ def add_purchasing_request(db: Session, request: sc.PurchasingRequestAdd, user: 
     aboniment: Aboniments = db.query(Aboniments).filter_by(id=request.aboniment_id,
                                                            is_deleted=False).first()
     if not aboniment:
-        raise HTTPException(400, {"title": "error", "error_message": "Aboniment not found!"})
+        raise HTTPException(400, detail={
+            "detail": "Aboniment not found!",
+            "error_title": "Validation error"
+        })
 
     # check if user already has a pending or approved purchasing request for this aboniment
     existing_request = (
@@ -26,7 +29,10 @@ def add_purchasing_request(db: Session, request: sc.PurchasingRequestAdd, user: 
         .first()
     )
     if existing_request:
-        raise HTTPException(400, {"title": "error", "error_message": "You have already requested this aboniment"})
+        raise HTTPException(400, detail={
+            "detail": "You have already requested this aboniment",
+            "error_title": "Validation error"
+        })
 
     if not user.department or not user.department.strip():
         if request.department and request.department.strip():
@@ -69,7 +75,10 @@ def add_purchasing_request(db: Session, request: sc.PurchasingRequestAdd, user: 
 
     if unused_count > 0:
         db.commit()
-        raise HTTPException(400, {"title": "error", "error_message": f"You already have {unused_count} unused active aboniment(s) for this plan"})
+        raise HTTPException(400, detail={
+            "detail": f"You already have {unused_count} unused active aboniment(s) for this plan",
+            "error_title": "Validation error"
+        })
 
     # if we marked any expired/used purchases as USED, commit those updates
     if active_purchases:
@@ -87,7 +96,10 @@ def add_purchasing_request(db: Session, request: sc.PurchasingRequestAdd, user: 
         return {"result": "Ok"}
     except Exception as err:
         db.rollback()
-        raise HTTPException(400, {"title": "error", "error_message": str(err)})
+        raise HTTPException(400, detail={
+            "detail": str(err),
+            "error_title": "Database error"
+        })
 
 
 def get_user_requests(db: Session, user: Users):

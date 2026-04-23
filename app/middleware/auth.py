@@ -41,21 +41,39 @@ class AuthHandler():
         try:
             payload = jwt.decode(token, self.secret, algorithms=['HS256'])
             if 'username' not in payload:
-                raise HTTPException(status_code=403, detail={'status':'Signature has expired'})
+                raise HTTPException(status_code=403, detail={
+                    'detail': 'Signature has expired',
+                    'error_title': 'Authentication error'
+                })
             with SessionManager() as db:
                 user: Users = db.query(Users).filter(Users.username == payload['username']).first()
                 if (user is None):
-                    raise HTTPException(status_code=403, detail='Not authenticated!')
+                    raise HTTPException(status_code=403, detail={
+                        'detail': 'Not authenticated!',
+                        'error_title': 'Authentication error'
+                    })
                 if self.check_admin and user.role != Roles.admin:
-                    raise HTTPException(status_code=403, detail={'status': 'User has no admin privilages'})
+                    raise HTTPException(status_code=403, detail={
+                        'detail': 'User has no admin privilages',
+                        'error_title': 'Authorization error'
+                    })
                 if self.check_provider and user.role == Roles.user:
-                    raise HTTPException(status_code=403, detail={'status': 'User has no provider privilages'})
+                    raise HTTPException(status_code=403, detail={
+                        'detail': 'User has no provider privilages',
+                        'error_title': 'Authorization error'
+                    })
                 return user
 
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=403, detail={'status':'Signature has expired'})
+            raise HTTPException(status_code=403, detail={
+                'detail': 'Signature has expired',
+                'error_title': 'Authentication error'
+            })
         except jwt.InvalidTokenError as e:
-            raise HTTPException(status_code=401, detail={'status':'Invalid token'})
+            raise HTTPException(status_code=401, detail={
+                'detail': 'Invalid token',
+                'error_title': 'Authentication error'
+            })
 
     def auth_wrapper(self, auth: HTTPAuthorizationCredentials = Security(security)):
         return self.decode_token(auth.credentials)
