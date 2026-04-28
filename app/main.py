@@ -26,6 +26,7 @@ from app.app.api_routers.providers import providers as app_providers
 from app.app.api_routers.visitation_logs import visitation_logs as app_visitation_logs
 from app.app.api_routers.purchases import purchasing_requests as app_purchasing_requests
 from app.app.api_routers.tools import tools as app_tools
+from app.app.api_routers.departments import departments as app_departments
 
 app = FastAPI()
 
@@ -66,6 +67,7 @@ app.include_router(app_providers.router)
 app.include_router(app_visitation_logs.router)
 app.include_router(app_purchasing_requests.router)
 app.include_router(app_tools.router)
+app.include_router(app_departments.router)
 
 app.include_router(web_auth.router)
 app.include_router(users.router)

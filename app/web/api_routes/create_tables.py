@@ -19,4 +19,4 @@ def create_tables():
     logger.info("requested method create_tables")
     resp = create_table()
     logger.info(f"Tables has been succesfully created! Base: {resp}")
-    return {"result": "ok"}
+    return {"result": "ok", "message": resp}
